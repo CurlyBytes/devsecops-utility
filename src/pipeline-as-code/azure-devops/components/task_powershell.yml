@@ -103,7 +103,7 @@ steps:
         task: "PowerShell@2.231.4"
         ${{ if ne(parameters.name, '') }}:
           name: ${{ parameters.name }}
-        displayName: "${{ parameters.displayName }}"
+        displayName: "${{ parameters.displayName }} - fffff"
         condition: ${{ parameters.condition }}
         continueOnError: ${{ parameters.continueOnError }}
         inputs:
