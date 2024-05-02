@@ -4,13 +4,13 @@
 # https://aka.ms/yaml
 
 trigger:
-- main
+- feat/*
 
 pool:
   vmImage: ubuntu-latest
+
 variables:
-  - name: AzdoPatToken
-    value: xxxxx
+  - group: "eac-validation"
 steps:
 
 
