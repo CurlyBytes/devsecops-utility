@@ -107,7 +107,7 @@ Describe "task_powershell.yml" {
         }
 
         It "Match the expected task" {
-            $Elements = 'PowerShell@2.231.4'
+            $Elements = 'PowerShell@2.230.1'
             $templateResources = $template.steps.parameters.objectTask.task
             $Elements | Should -BeIn $templateResources
             $templateResources | Should -Not -BeNullOrEmpty
