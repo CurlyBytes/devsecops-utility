@@ -100,10 +100,10 @@ steps:
       yamlFullFilePath: "src/pipeline-as-code/azure-devops/components/task_powershell.yml"
       powershellScriptFullFilePath: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.powershellScriptFullFilePath, parameters.powershellScriptFullFilePath) }}"
       objectTask:
-        task: "PowerShell@2.230.1"
+        task: "PowerShell@2.231.5"
         ${{ if ne(parameters.name, '') }}:
           name: ${{ parameters.name }}
-        displayName: "${{ parameters.displayName }} - fffff"
+        displayName: "${{ parameters.displayName }}"
         condition: ${{ parameters.condition }}
         continueOnError: ${{ parameters.continueOnError }}
         inputs:
