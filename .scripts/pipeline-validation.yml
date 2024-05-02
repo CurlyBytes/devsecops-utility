@@ -1,0 +1,47 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - group: "eac-validation"
+
+steps:
+- template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+  parameters:
+    filePath: "$(System.DefaultWorkingDirectory)/.scripts/utilities/pester-testing-eac.ps1"
+    displayName: "Task - Unit Tests"
+    targetType: "filepath"
+    arguments: "-ModulePath $(System.DefaultWorkingDirectory)/tests/azure-devops -ResultsPath $(System.DefaultWorkingDirectory)/Publish -Organizationname curlybytes -AzdoPatToken $(AzdoPatToken) -TestType unit-test -Publish"
+    progressPreference: "silentlyContinue"
+    failOnStderr: false
+    ignoreLASTEXITCODE: true
+    pwsh: true
+
+- template: ../src/pipeline-as-code/azure-devops/components/task_publish_code_coverage_result.yml
+  parameters:
+    condition: succeededOrFailed()
+    displayName: "Task - Publish Pester Code Coverage"
+    codeCoverageTool: "JaCoCo"
+    summaryFileLocation: "**/Pester-unit-test-CodeCoverage.xml"
+    pathToSources: "$(System.DefaultWorkingDirectory)"
+    failIfCoverageEmpty: true
+    additionalCodeCoverageFiles: "$(System.DefaultWorkingDirectory)/tests/**/**/*.ps*"
+
+- template: ../src/pipeline-as-code/azure-devops/components/task_publish_test_results.yml
+  parameters:
+    condition: succeededOrFailed()
+    displayName: "Task - Publish Pester Tests Result"
+    testResultsFormat: "NUnit"
+    testResultsFiles: "**/Pester-unit-test.xml"
+    mergeTestResults: true
+    failTaskOnFailedTests: true
+    testRunTitle: "Yaml_UnitTest_$(Build.BuildId)_$(Agent.OS)_$(Agent.OSArchitecture)($(Agent.MachineName))"
+    buildPlatform: "Any CPU"
+    buildConfiguration: "Release"

@@ -7,7 +7,7 @@ BeforeAll {
      $azdoProjectname = "Public"
 
      #Any valid pipeline Id on $azdoProjectname being define
-     $azdoPipelineId = 439
+     $azdoPipelineId = 9
 
     $filename = "task_powershell.yml"
     $filepath = "$PSScriptRoot/../../../src/pipeline-as-code/azure-devops/components/$filename"
@@ -107,7 +107,7 @@ Describe "task_powershell.yml" {
         }
 
         It "Match the expected task" {
-            $Elements = 'PowerShell@2.231.4'
+            $Elements = 'PowerShell@2.231.5'
             $templateResources = $template.steps.parameters.objectTask.task
             $Elements | Should -BeIn $templateResources
             $templateResources | Should -Not -BeNullOrEmpty

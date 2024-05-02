@@ -7,7 +7,7 @@ BeforeAll {
      $azdoProjectname = "Public"
 
      #Any valid pipeline Id on $azdoProjectname being define
-     $azdoPipelineId = 439
+     $azdoPipelineId = 9
 
     $filename = "azdo_container_step.yml"
     $filepath = "$PSScriptRoot/../../../src/pipeline-as-code/azure-devops/components/$filename"
