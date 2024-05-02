@@ -4,16 +4,15 @@
 # https://aka.ms/yaml
 
 trigger:
-- feat/*
+- main
 
 pool:
   vmImage: ubuntu-latest
 
 variables:
   - group: "eac-validation"
+
 steps:
-
-
 - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
   parameters:
     filePath: "$(System.DefaultWorkingDirectory)/.scripts/utilities/pester-testing-eac.ps1"
