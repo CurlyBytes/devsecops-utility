@@ -1,0 +1,98 @@
+# Publish Test Result to Azure Pipeline Component
+---
+parameters:
+  - name: yamlPipelineConfiguration
+    displayName: "The Dynamic Object Pipeline Configuration for Clean Setup with Coalesce"
+    type: object
+    default: []
+  - name: projectName
+    displayName: "Project Name of Product/Service"
+    type: string
+    default: "$(Build.Repository.Name)"
+  - name: instrumentationKey
+    displayName: "A public key parameter for app insights instrumentation key"
+    type: string
+    default: "xxxxxxxxx"
+  - name: powershellScriptFullFilePath
+    displayName: "The yaml relative filepath location"
+    type: string
+    default: "$(Pipeline.Workspace)/s/template-cicd"
+  - name: displayName
+    displayName: "Display name in the GUI pipeline"
+    type: string
+    default: "Task - Powershell Execution"
+  - name: condition
+    displayName: "Trigger Condition to run the Steps"
+    type: string
+    default: "succeeded()"
+  - name: continueOnError
+    displayName: "Switch to continue the task even it is failure"
+    type: boolean
+    default: false
+  - name: testResultsFormat
+    displayName: "The file type of Test Result of Test Coverage"
+    type: string
+    default: "XUnit"
+    values:
+      - CTest
+      - JUnit
+      - NUnit
+      - VSTest
+      - XUnit
+  - name: testResultsFiles
+    displayName: "The file path of Test Results"
+    type: string
+    default: "**/Pester-unit-tests.xml"
+  - name: searchFolder
+    displayName: "The search folder of the test results files"
+    type: string
+    default: "$(System.DefaultWorkingDirectory)"
+  - name: mergeTestResults
+    displayName: "Consolidate all the test result files"
+    type: boolean
+    default: true
+  - name: failTaskOnFailedTests
+    displayName: "Break the pipeline when an error of test case occur"
+    type: boolean
+    default: true
+  - name: testRunTitle
+    displayName: "The Test Title name appears on the Test Pipeline"
+    type: string
+    default: ""
+  - name: buildPlatform
+    displayName: "The Build Platform of the Test Result usage"
+    type: string
+    default: "Any CPU"
+    values:
+      - "Any CPU"
+      - "x64"
+  - name: buildConfiguration
+    displayName: "The Build Configuration of the Test Result usage"
+    type: string
+    default: "Release"
+    values:
+      - "Release"
+      - "Debug"
+  
+steps:
+  - template: azdo_container_step.yml
+    parameters:
+      yamlPipelineConfiguration: ${{ parameters.yamlPipelineConfiguration }}
+      projectName: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.projectName, parameters.projectName) }}"
+      instrumentationKey: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.instrumentationKey, parameters.instrumentationKey) }}"
+      yamlFullFilePath: "src/pipeline-as-code/azure-devops/components/task_publish_test_results.yml"
+      powershellScriptFullFilePath: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.powershellScriptFullFilePath, parameters.powershellScriptFullFilePath) }}"
+      objectTask:
+        task: "PublishTestResults@2.230.0"
+        displayName: "${{ parameters.displayName }}"
+        condition: ${{ parameters.condition }}
+        continueOnError: ${{ parameters.continueOnError }}
+        inputs:
+          testResultsFormat: "${{ parameters.testResultsFormat }}"
+          testResultsFiles: "${{ parameters.testResultsFiles }}"
+          searchFolder: "${{ parameters.searchFolder }}"
+          mergeTestResults: ${{ parameters.mergeTestResults }}
+          failTaskOnFailedTests: ${{ parameters.failTaskOnFailedTests }}
+          testRunTitle: "${{ parameters.testRunTitle }}"
+          buildPlatform: "${{ parameters.buildPlatform }}"
+          buildConfiguration: "${{ parameters.buildConfiguration }}"

@@ -1,0 +1,62 @@
+# Azure Devops: Container Task Block
+---
+parameters:
+  - name: task
+    displayName: "Task process name"
+    type: string
+    default: "PowerShell@2.231.4"
+  - name: name
+    displayName: "Unique identity for the process"
+    type: string
+    default: ""
+  - name: displayName
+    displayName: "UI pipeline text"
+    type: string
+    default: "Task - Echo Hello World"
+  - name: condition
+    displayName: "Trigger Condition to run the Steps"
+    type: string
+    default: "succeeded()"
+  - name: continueOnError
+    displayName: "Switch to continue running the process even having error"
+    type: boolean
+    default: false
+  - name: enabled
+    displayName: "Switch to enable or disable task processing"
+    type: boolean
+    default: true
+  - name: timeoutInMinutes
+    displayName: "Maximum timeout of Steps processing time"
+    type: string
+    default: "25"
+  - name: retryCountOnTaskFailure
+    displayName: "Number of times for retry count upon error"
+    type: string
+    default: "1"
+  - name: inputs
+    displayName: "Parameter required for the specific processing task"
+    type: object
+    default:
+      targetType: "inline"
+      script: |
+        echo Hello World
+  - name: env
+    displayName: "Environment variable holder"
+    type: object
+    default: []
+
+steps:
+  - task: ${{ parameters.task }}
+    ${{ if ne(parameters.name, '') }}:
+      name: ${{ parameters.name }}
+    displayName: ${{ parameters.displayName }}
+    condition: ${{ parameters.condition }}
+    continueOnError: ${{ parameters.continueOnError }}
+    enabled: ${{ parameters.enabled }}
+    timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
+    retryCountOnTaskFailure: ${{ parameters.retryCountOnTaskFailure }}
+    inputs:
+      ${{ parameters.inputs }}
+    ${{ if ne(convertToJson(parameters.env), '[]') }}:
+      env:
+        ${{ parameters.env }}

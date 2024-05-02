@@ -1,0 +1,74 @@
+# Code Coverage Publish result to Azure Pipeline Component
+---
+parameters:
+  - name: yamlPipelineConfiguration
+    displayName: "The Dynamic Object Pipeline Configuration for Clean Setup with Coalesce"
+    type: object
+    default: []
+  - name: projectName
+    displayName: "Project Name of Product/Service"
+    type: string
+    default: "$(Build.Repository.Name)"
+  - name: instrumentationKey
+    displayName: "A public key parameter for app insights instrumentation key"
+    type: string
+    default: "xxxxxxxxx"
+  - name: powershellScriptFullFilePath
+    displayName: "The yaml relative filepath location"
+    type: string
+    default: "$(Pipeline.Workspace)/s/template-cicd"
+  - name: displayName
+    displayName: "Display name in the GUI pipeline"
+    type: string
+    default: "Task - Powershell Execution"
+  - name: condition
+    displayName: "Trigger Condition to run the Steps"
+    type: string
+    default: "succeeded()"
+  - name: continueOnError
+    displayName: "Switch to continue the task even it is failure"
+    type: boolean
+    default: false
+  - name: codeCoverageTool
+    displayName: "The file type of Test Result of Code Coverage"
+    type: string
+    default: "JaCoCo"
+    values:
+      - JaCoCo
+      - Cobertura
+  - name: summaryFileLocation
+    displayName: "Summary of the Test Result File Location"
+    type: string
+    default: "**/Pester-unit-tests-CodeCoverage.xml"
+  - name: pathToSources
+    displayName: "The Source Root of the script to be cover of the test case"
+    type: string
+    default: "$(System.DefaultWorkingDirectory)"
+  - name: additionalCodeCoverageFiles
+    displayName: "Other Additional Code Coverage Files"
+    type: string
+    default: "$(System.DefaultWorkingDirectory)/**/*.ps*"
+  - name: failIfCoverageEmpty
+    displayName: "Error the Task when Coverage file not exist"
+    type: boolean
+    default: true
+  
+steps:
+  - template: azdo_container_step.yml
+    parameters:
+      yamlPipelineConfiguration: ${{ parameters.yamlPipelineConfiguration }}
+      projectName: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.projectName, parameters.projectName) }}"
+      instrumentationKey: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.instrumentationKey, parameters.instrumentationKey) }}"
+      yamlFullFilePath: "src/pipeline-as-code/azure-devops/components/task_publish_code_coverage_result.yml"
+      powershellScriptFullFilePath: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.powershellScriptFullFilePath, parameters.powershellScriptFullFilePath) }}"
+      objectTask:
+        task: "PublishCodeCoverageResults@1.228.0"
+        displayName: "${{ parameters.displayName }}"
+        condition: ${{ parameters.condition }}
+        continueOnError: ${{ parameters.continueOnError }}
+        inputs:
+          codeCoverageTool: "${{ parameters.codeCoverageTool }}"
+          summaryFileLocation: "${{ parameters.summaryFileLocation }}"
+          pathToSources: "${{ parameters.pathToSources }}"
+          additionalCodeCoverageFiles: "${{ parameters.additionalCodeCoverageFiles }}"
+          failIfCoverageEmpty: ${{ parameters.failIfCoverageEmpty }}

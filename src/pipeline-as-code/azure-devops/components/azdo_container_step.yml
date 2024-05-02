@@ -1,0 +1,32 @@
+# Azure Devops: Container Step Block
+---
+parameters:
+  - name: yamlPipelineConfiguration
+    displayName: "The Dynamic Object Pipeline Configuration for Clean Setup with Coalesce"
+    type: object
+    default: []
+  - name: projectName
+    displayName: "Project Name of Product/Service"
+    type: string
+    default: "$(Build.Repository.Name)"
+  - name: instrumentationKey
+    displayName: "A public key parameter for observabiliy instrumentation key"
+    type: string
+    default: "xxxxxxxxx"
+  - name: yamlFullFilePath
+    displayName: "The yaml relative filepath location"
+    type: string
+    default: "src/pipeline-as-code/azure-devops/components/azdo_container_step.yml"
+  - name: powershellScriptFullFilePath
+    displayName: "The powershell relative filepath location"
+    type: string
+    default: "$(Pipeline.Workspace)/s/devsecops-utility"
+  - name: objectTask
+    displayName: "The yaml template parameter alongside with its corresponding properties"
+    type: object
+    default: []
+
+steps:
+  - template: azdo_container_task.yml
+    parameters:
+      ${{ parameters.objectTask }}

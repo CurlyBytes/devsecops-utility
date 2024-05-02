@@ -1,0 +1,126 @@
+# A Powershell Task
+---
+parameters:
+  - name: yamlPipelineConfiguration
+    displayName: "The Dynamic Object Pipeline Configuration for Clean Setup with Coalesce"
+    type: object
+    default: []
+  - name: projectName
+    displayName: "Project Name of Product/Service"
+    type: string
+    default: "$(Build.Repository.Name)"
+  - name: instrumentationKey
+    displayName: "A public key parameter for app insights instrumentation key"
+    type: string
+    default: "xxxxxxxxx"
+  - name: powershellScriptFullFilePath
+    displayName: "The yaml relative filepath location"
+    type: string
+    default: "$(Pipeline.Workspace)/s/template-cicd"
+  - name: name
+    displayName: "Unique Identity of the process task"
+    type: string
+    default: ""
+  - name: displayName
+    displayName: "Display name in the GUI pipeline"
+    type: string
+    default: "Task - Powershell Execution"
+  - name: condition
+    displayName: "Trigger Condition to run the Steps"
+    type: string
+    default: "succeeded()"
+  - name: continueOnError
+    displayName: "Switch to continue the task even it is failure"
+    type: boolean
+    default: false
+  - name: targetType
+    displayName: "Powershell Type execution"
+    type: string
+    default: "inline"
+    values:
+      - inline
+      - filepath
+  - name: script
+    displayName: "Powershell raw command"
+    type: string
+    default: echo "Hello World"
+  - name: filePath
+    displayName: "Powershell file path location"
+    type: string
+    default: "steps.ps1"
+  - name: arguments
+    displayName: "Parameter for powershell script files"
+    type: string
+    default: "-parametername helloworld -parametertype string"
+  - name: workingDirectory
+    displayName: "File location of powershell execution"
+    type: string
+    default: "$(System.DefaultWorkingDirectory)"
+  - name: errorActionPreference
+    displayName: "Powershell Action whenever error occurs"
+    type: string
+    default: "default"
+    values:
+      - default
+      - silentlyContinue
+  - name: progressPreference
+    displayName: "Tracking of Powershell Activity and Queueing"
+    type: string
+    default: "default"
+    values:
+      - default
+      - silentlyContinue
+  - name: failOnStderr
+    displayName: "Is halt and error upon a failure on the script occur"
+    type: boolean
+    default: true
+  - name: showWarnings
+    displayName: "Is display Error and warnings in consoler"
+    type: boolean
+    default: true
+  - name: ignoreLASTEXITCODE
+    displayName: "Still continue the upon script command on exit"
+    type: boolean
+    default: false
+  - name: pwsh
+    displayName: "Can support script on Linux"
+    type: boolean
+    default: true
+  - name: env
+    displayName: "Environment variable holder in Powershell"
+    type: object
+    default: []
+
+steps:
+  - template: azdo_container_step.yml
+    parameters:
+      yamlPipelineConfiguration: ${{ parameters.yamlPipelineConfiguration }}
+      projectName: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.projectName, parameters.projectName) }}"
+      instrumentationKey: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.instrumentationKey, parameters.instrumentationKey) }}"
+      yamlFullFilePath: "src/pipeline-as-code/azure-devops/components/task_powershell.yml"
+      powershellScriptFullFilePath: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.powershellScriptFullFilePath, parameters.powershellScriptFullFilePath) }}"
+      objectTask:
+        task: "PowerShell@2.231.4"
+        ${{ if ne(parameters.name, '') }}:
+          name: ${{ parameters.name }}
+        displayName: "${{ parameters.displayName }}"
+        condition: ${{ parameters.condition }}
+        continueOnError: ${{ parameters.continueOnError }}
+        inputs:
+          ${{ if eq(parameters.targetType, 'inline') }}:
+            targetType: "${{ parameters.targetType }}"
+            script: |
+              ${{ parameters.script }}
+          ${{ else }}:
+            filePath: "${{ parameters.filePath }}"
+            arguments: "${{ parameters.arguments }}"
+          workingDirectory: "${{ parameters.workingDirectory }}"
+          errorActionPreference: "${{ parameters.errorActionPreference }}"
+          progressPreference: "${{ parameters.progressPreference }}"
+          failOnStderr: ${{ parameters.failOnStderr }}
+          showWarnings: ${{ parameters.showWarnings }}
+          ignoreLASTEXITCODE: ${{ parameters.ignoreLASTEXITCODE }}
+          pwsh: ${{ parameters.pwsh }}
+          ${{ if ne(convertToJson(parameters.env), '[]') }}:
+            env:
+              ${{ parameters.env }}
