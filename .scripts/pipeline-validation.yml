@@ -4,7 +4,7 @@
 # https://aka.ms/yaml
 
 trigger:
-- main
+- feat/*
 
 pool:
   vmImage: ubuntu-latest
@@ -24,24 +24,24 @@ steps:
     ignoreLASTEXITCODE: true
     pwsh: true
 
-  - template: ../src/pipeline-as-code/azure-devops/components/task_publish_code_coverage_result.yml
-    parameters:
-      condition: succeededOrFailed()
-      displayName: "Task - Publish Pester Code Coverage"
-      codeCoverageTool: "JaCoCo"
-      summaryFileLocation: "**/Pester-unit-test-CodeCoverage.xml"
-      pathToSources: "$(System.DefaultWorkingDirectory)"
-      failIfCoverageEmpty: true
-      additionalCodeCoverageFiles: "$(System.DefaultWorkingDirectory)/tests/**/**/*.ps*"
+- template: ../src/pipeline-as-code/azure-devops/components/task_publish_code_coverage_result.yml
+  parameters:
+    condition: succeededOrFailed()
+    displayName: "Task - Publish Pester Code Coverage"
+    codeCoverageTool: "JaCoCo"
+    summaryFileLocation: "**/Pester-unit-test-CodeCoverage.xml"
+    pathToSources: "$(System.DefaultWorkingDirectory)"
+    failIfCoverageEmpty: true
+    additionalCodeCoverageFiles: "$(System.DefaultWorkingDirectory)/tests/**/**/*.ps*"
 
-  - template: ../src/pipeline-as-code/azure-devops/components/task_publish_test_results.yml
-    parameters:
-      condition: succeededOrFailed()
-      displayName: "Task - Publish Pester Tests Result"
-      testResultsFormat: "NUnit"
-      testResultsFiles: "**/Pester-unit-test.xml"
-      mergeTestResults: true
-      failTaskOnFailedTests: true
-      testRunTitle: "Yaml_UnitTest_$(Build.BuildId)_$(Agent.OS)_$(Agent.OSArchitecture)($(Agent.MachineName))"
-      buildPlatform: "Any CPU"
-      buildConfiguration: "Release"
+- template: ../src/pipeline-as-code/azure-devops/components/task_publish_test_results.yml
+  parameters:
+    condition: succeededOrFailed()
+    displayName: "Task - Publish Pester Tests Result"
+    testResultsFormat: "NUnit"
+    testResultsFiles: "**/Pester-unit-test.xml"
+    mergeTestResults: true
+    failTaskOnFailedTests: true
+    testRunTitle: "Yaml_UnitTest_$(Build.BuildId)_$(Agent.OS)_$(Agent.OSArchitecture)($(Agent.MachineName))"
+    buildPlatform: "Any CPU"
+    buildConfiguration: "Release"
