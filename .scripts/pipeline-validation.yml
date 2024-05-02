@@ -14,12 +14,12 @@ variables:
 steps:
 
 
-- template: ./src/pipeline-as-code/azure-devops/components/task_powershell.yml
+- template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
   parameters:
     filePath: "$(System.DefaultWorkingDirectory)/.scripts/utilities/pester-testing-eac.ps1"
     displayName: "Task - Unit Tests"
     targetType: "filepath"
-    arguments: "-ModulePath $(System.DefaultWorkingDirectory)/tests/azure-devops -ResultsPath $(System.DefaultWorkingDirectory)/Publish -Organizationname rafi-secdevops -AzdoPatToken $(AzdoPatToken) -TestType unit-test -Publish"
+    arguments: "-ModulePath $(System.DefaultWorkingDirectory)/tests/azure-devops -ResultsPath $(System.DefaultWorkingDirectory)/Publish -Organizationname curlybytes -AzdoPatToken $(AzdoPatToken) -TestType unit-test -Publish"
     progressPreference: "silentlyContinue"
     failOnStderr: false
     ignoreLASTEXITCODE: true
