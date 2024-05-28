@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  terraform_container:
+    container_name: azdotf-devsecops-utility
+    build: .
+    entrypoint:
+      - /usr/bin/tail
+    command: -f /dev/null
+    restart: always
+    volumes:
+      # - ./samples/az-standard-rg:/code
+      - .:/code
+    working_dir: /code

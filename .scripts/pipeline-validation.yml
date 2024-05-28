@@ -4,7 +4,7 @@
 # https://aka.ms/yaml
 
 trigger:
-- main
+- feat/*
 
 pool:
   vmImage: ubuntu-latest
@@ -45,3 +45,12 @@ steps:
     testRunTitle: "Yaml_UnitTest_$(Build.BuildId)_$(Agent.OS)_$(Agent.OSArchitecture)($(Agent.MachineName))"
     buildPlatform: "Any CPU"
     buildConfiguration: "Release"
+
+- task: Docker@2
+  displayName: "Build Terraform Image"
+  inputs:
+    containerRegistry: 'terraform-az-dg'
+    repository: 'terraform-devsecops-utility-shared'
+    command: 'buildAndPush'
+    Dockerfile: '$(Build.SourcesDirectory)/src/infrastructure-as-code/terraform/Dockerfile'
+    buildContext: '$(Build.SourcesDirectory)/src/infrastructure-as-code/terraform'
