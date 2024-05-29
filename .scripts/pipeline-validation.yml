@@ -84,7 +84,7 @@ stages:
               failOnStderr: false
               ignoreLASTEXITCODE: true
               pwsh: true
-              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/teraform/samples/az-standard-rg
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
               env:
                 AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
