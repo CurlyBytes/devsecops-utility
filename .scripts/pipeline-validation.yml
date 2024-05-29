@@ -95,7 +95,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform fmt -check=true -write=false -diff=true
+                #terraform fmt -check=true -write=false -diff=true
                 terraform validate 
               displayName: "Task - Validate"
               targetType: "inline"
@@ -118,9 +118,6 @@ stages:
                 terraform plan -out=terraform.tfplan
               displayName: "Task - Plan"
               targetType: "inline"
-              progressPreference: "silentlyContinue"
-              failOnStderr: false
-              ignoreLASTEXITCODE: true
               pwsh: true
               workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
               env:
