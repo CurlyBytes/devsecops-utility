@@ -57,6 +57,7 @@ steps:
     retryCountOnTaskFailure: ${{ parameters.retryCountOnTaskFailure }}
     inputs:
       ${{ parameters.inputs }}
-    ${{ if ne(convertToJson(parameters.env), '[]') }}:
-      env:
+   
+    env:
+      -${{ if ne(convertToJson(parameters.env), '[]') }}:
         ${{ parameters.env }}
