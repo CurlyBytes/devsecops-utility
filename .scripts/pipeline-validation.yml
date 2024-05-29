@@ -19,7 +19,7 @@ resources:
 variables:
   - group: "eac-validation"
   - group: "tenant1"
-  - group: "tenant2"
+
 stages:
   - stage: ContinousIntegration
     displayName: Continous Integration
