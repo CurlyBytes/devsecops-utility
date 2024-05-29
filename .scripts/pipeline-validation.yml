@@ -13,7 +13,7 @@ resources:
   containers:
   - container: dcl-azdo-container
     image: acidglshared.azurecr.io/terraform-devsecops-utility-shared:635
-    endpoint: terraform-devsecops-utility-shared
+    endpoint: terraform-az-dg
     volumes:
       - ./home/vsts/work/1/s/src/infrastructure-as-code/terraform:/code:rw
 variables:
