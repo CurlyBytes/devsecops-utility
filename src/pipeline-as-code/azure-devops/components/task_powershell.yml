@@ -121,6 +121,6 @@ steps:
           showWarnings: ${{ parameters.showWarnings }}
           ignoreLASTEXITCODE: ${{ parameters.ignoreLASTEXITCODE }}
           pwsh: ${{ parameters.pwsh }}
-          ${{ if ne(convertToJson(parameters.env), '[]') }}:
-            env:
-              ${{ parameters.env }}
+        ${{ if ne(convertToJson(parameters.env), '[]') }}:
+          env:
+            ${{ parameters.env }}
