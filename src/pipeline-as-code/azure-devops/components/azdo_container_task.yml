@@ -56,7 +56,7 @@ steps:
     timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
     retryCountOnTaskFailure: ${{ parameters.retryCountOnTaskFailure }}
     inputs:
-      ${{ if ne(convertToJson(parameters.env), '[]') }}:
-        env:
-          ${{ parameters.env }}
       ${{ parameters.inputs }}
+    ${{ if ne(convertToJson(parameters.env), '[]') }}:
+      env:
+        ${{ parameters.env }}
