@@ -15,7 +15,7 @@ resources:
     image: acidglshared.azurecr.io/terraform-devsecops-utility-shared:635
     endpoint: terraform-az-dg
     volumes:
-      - ./home/vsts/work/1/s/src/infrastructure-as-code/terraform:/code:rw
+      - ./home/vsts/work/1/s/src/infrastructure-as-code/terraform:/code
 variables:
   - group: "eac-validation"
   - group: "tenant1"
@@ -91,4 +91,4 @@ stages:
                 ARM_CLIENT_ID: $(sp_clientId)
                 ARM_CLIENT_SECRET: $(sp_clientSecret)
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
-                ARM_TENANT_ID: $(sp_tenantId)
+                ARM_TENANT_ID: $(sp_tenantId) 
