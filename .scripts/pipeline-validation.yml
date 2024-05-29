@@ -114,7 +114,7 @@ stages:
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
-              script: "terraform plan -compact-warnings -input=false -out=terraform.tfplan"
+              script: "terraform plan -out=terraform.tfplan"
               displayName: "Task - Validate"
               targetType: "inline"
               progressPreference: "silentlyContinue"
