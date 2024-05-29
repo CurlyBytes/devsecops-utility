@@ -12,6 +12,11 @@ terraform {
   }
 }
 
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
+  features {}
+}
+
 module "aztf_rnd_rg" {
     # source        = "../terraform/components/azure-resource-group"
     source          = "../../components/azure-resource-group"

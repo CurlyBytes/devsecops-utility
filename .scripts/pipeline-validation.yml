@@ -12,7 +12,7 @@ pool:
 resources:
   containers:
   - container: dcl-azdo-container
-    image: acidglshared.azurecr.io/terraform-devsecops-utility-shared:635
+    image: acidglshared.azurecr.io/terraform-devsecops-utility-shared:latest
     endpoint: terraform-az-dg
     volumes:
       - ./src/infrastructure-as-code/terraform:/code
