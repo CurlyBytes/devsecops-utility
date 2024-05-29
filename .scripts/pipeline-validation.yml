@@ -115,7 +115,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform plan -out=terraform.tfplan
+                terraform plan -out="planfile"
               displayName: "Task - Plan"
               targetType: "inline"
               pwsh: true
