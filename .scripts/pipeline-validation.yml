@@ -95,7 +95,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                #terraform fmt -check=true -write=false -diff=true
+                terraform fmt -check=true -write=false -diff=true
                 terraform validate 
               displayName: "Task - Validate"
               targetType: "inline"
