@@ -115,7 +115,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform plan 
+                terraform plan -out=terraform.tfplan
               displayName: "Task - Plan"
               targetType: "inline"
               progressPreference: "silentlyContinue"
