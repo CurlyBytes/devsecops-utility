@@ -154,4 +154,16 @@ stages:
               targetType: "inline"
               pwsh: true
               workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
+
+
+          - task: TerraformOutput@1
+            inputs:
+              outputFilePath: '$(infrastructure_workingdirectory)/terraform.tfplan'
+              artifactName: 'sbx'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(infrastructure_workingdirectory)/terraform.tfplan'
+              artifactName: 'terraformPlan'
+              publishLocation: 'Container'
               
