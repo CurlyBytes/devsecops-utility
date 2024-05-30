@@ -9,6 +9,5 @@ services:
     command: -f /dev/null
     restart: always
     volumes:
-      # - ./samples/az-standard-rg:/code
       - .:/code
-    working_dir: /code
+    working_dir: /code/samples/az-standard-rg
