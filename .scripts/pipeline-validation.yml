@@ -187,25 +187,25 @@ stages:
               targetType: "inline"
               pwsh: true
               workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
-          - task: CopyFiles@2
-            inputs:
-              SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
-              Contents: '**'
-              TargetFolder: '$(Pipeline.Workspace)/cocoy'
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-            parameters:
-              script: "terraform apply -input=false -auto-approve"
-              displayName: "Task - Apply"
-              targetType: "inline"
-              pwsh: true
-              workingDirectory: $(Pipeline.Workspace)/cocoy
-              env:
-                AAD_USE_MICROSOFT_GRAPH: 1
-                TF_IN_AUTOMATION: true
-                ARM_CLIENT_ID: $(sp_clientId)
-                ARM_CLIENT_SECRET: $(sp_clientSecret)
-                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
-                ARM_TENANT_ID: $(sp_tenantId) 
+          # - task: CopyFiles@2
+          #   inputs:
+          #     SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
+          #     Contents: '**'
+          #     TargetFolder: '$(Pipeline.Workspace)/cocoy'
+          # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          #   parameters:
+          #     script: "terraform apply -input=false -auto-approve"
+          #     displayName: "Task - Apply"
+          #     targetType: "inline"
+          #     pwsh: true
+          #     workingDirectory: $(Pipeline.Workspace)/cocoy
+          #     env:
+          #       AAD_USE_MICROSOFT_GRAPH: 1
+          #       TF_IN_AUTOMATION: true
+          #       ARM_CLIENT_ID: $(sp_clientId)
+          #       ARM_CLIENT_SECRET: $(sp_clientSecret)
+          #       ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+          #       ARM_TENANT_ID: $(sp_tenantId) 
 
           - task: TerraformOutput@1
             inputs:
@@ -214,24 +214,24 @@ stages:
 
           - task: PublishBuildArtifacts@1
             inputs:
-              pathtoPublish: '$(Pipeline.Workspace)/cocoy'
+              pathtoPublish: '$(Pipeline.Workspace)'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-            parameters:
-              script: "terraform destroy -input=false -auto-approve"
-              displayName: "Task - Destroy"
-              targetType: "inline"
-              pwsh: true
-              workingDirectory: $(Pipeline.Workspace)/cocoy
-              env:
-                AAD_USE_MICROSOFT_GRAPH: 1
-                TF_IN_AUTOMATION: true
-                ARM_CLIENT_ID: $(sp_clientId)
-                ARM_CLIENT_SECRET: $(sp_clientSecret)
-                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
-                ARM_TENANT_ID: $(sp_tenantId) 
+          # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          #   parameters:
+          #     script: "terraform destroy -input=false -auto-approve"
+          #     displayName: "Task - Destroy"
+          #     targetType: "inline"
+          #     pwsh: true
+          #     workingDirectory: $(Pipeline.Workspace)/cocoy
+          #     env:
+          #       AAD_USE_MICROSOFT_GRAPH: 1
+          #       TF_IN_AUTOMATION: true
+          #       ARM_CLIENT_ID: $(sp_clientId)
+          #       ARM_CLIENT_SECRET: $(sp_clientSecret)
+          #       ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+          #       ARM_TENANT_ID: $(sp_tenantId) 
 
       - job: TerraformAppl
         displayName: 'CICD - TF Apply Tenant 1'
