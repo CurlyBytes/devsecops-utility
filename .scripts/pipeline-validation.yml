@@ -115,7 +115,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false -reconfigure
+                terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false  -reconfigure
               displayName: "Task - Terraform Initialize"
               targetType: "inline"
               pwsh: true
@@ -213,7 +213,11 @@ stages:
               outputFilePath: '$(Agent.TempDirectory)/environment/tfplan'
               artifactName: 'sbx'
 
-
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(Agent.TempDirectory)/environment/tfplan'
+              artifactName: 'TerraformPlan'
+              publishLocation: 'Container'
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
           #   parameters:
           #     script: "terraform destroy -input=false -auto-approve"
@@ -235,13 +239,52 @@ stages:
         container: dcl-azdo-container
         steps:
           - checkout: none
-
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              artifactName: 'TerraformPlan'
+              targetPath: '$(Agent.TempDirectory)/environment'
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform init -lockfile=readonly -input=false
-                terraform apply -input=false -auto-approve
+                $filename = "backend.tf"
+                $path = "$(Agent.TempDirectory)/environment"
+                $pathandfile = "$path\$filename"
+                if ((Test-Path -Path $pathandfile) -eq $false){
+                    New-Item -Path $path -Name $filename -ItemType "file" -Value "terraform { `r`n backend ""azurerm"" {`r`n} `r`n }"
+                }
+              displayName: "Task - Inject State Management"
+              targetType: "inline"
+              progressPreference: "silentlyContinue"
+              failOnStderr: true
+              pwsh: true
+              workingDirectory: $(Agent.TempDirectory)/environment
+              env:
+                AAD_USE_MICROSOFT_GRAPH: 1
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
+          - task: file-creator@6
+            inputs:
+              filepath: '$(Agent.TempDirectory)/environment/azure.conf'
+              filecontent: |
+                resource_group_name  = "rg-test-rnd"
+                storage_account_name = "saterraformsbx1"
+                container_name       = "terraformstatestoragesandbox"
+                key                  = "devsecops-azure-resource-group-terraform-sbx.tfstate"
+                access_key           = "$(tf_backend_storage_account_key)"
+              fileoverwrite: true
+              endWithNewLine: true
+              verbose: true
+
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf'
+                terraform apply -input=false -auto-approve tfplan
               displayName: "Task - Apply"
               targetType: "inline"
               pwsh: true
