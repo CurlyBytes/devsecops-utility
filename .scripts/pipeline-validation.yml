@@ -215,7 +215,12 @@ stages:
 
           - task: PublishBuildArtifacts@1
             inputs:
-              pathtoPublish: '$(Agent.TempDirectory)/environment'
+              pathtoPublish: '$(Agent.TempDirectory)/environment/tfplan'
+              artifactName: 'TerraformPlan'
+              publishLocation: 'Container'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(Agent.TempDirectory)/environment/.terraform.lock.hcl'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
@@ -249,6 +254,7 @@ stages:
             parameters:
               script: |
                 chmod -R +x .terraform
+                terraform init -lockfile=readonly -backend=false
                 terraform apply -input=false -auto-approve
               displayName: "Task - Apply"
               targetType: "inline"
