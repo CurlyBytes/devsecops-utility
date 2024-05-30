@@ -194,10 +194,9 @@ stages:
               outputFilePath: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/terraform.tfplan'
               artifactName: 'sbx'
 
-          - task: PublishPipelineArtifact@1
-            displayName: Publish Plan artifact
+          - task: PublishBuildArtifacts@1
             inputs:
-              targetPath: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/terraform.tfplan
+              pathtoPublish: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/terraform.tfplan'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
 
