@@ -213,7 +213,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform init -lockfile=readonly
+                terraform init -lockfile=readonly -backend=false
                 terraform apply -lock-timeout=30m -compact-warnings -input=false -auto-approve "terraform.tfplan"
                 terraform output -json > output.json
               displayName: "Task - Apply"
