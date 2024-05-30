@@ -73,11 +73,16 @@ stages:
         displayName: 'CICD - TF Plan Tenant 1'
         container: dcl-azdo-container
         steps:
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
+              Contents: '**'
+              TargetFolder: '$(Agent.TempDirectory)/environment'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
                 $filename = "backend.tf"
-                $path = "$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg"
+                $path = "$(Agent.TempDirectory)/environment"
                 $pathandfile = "$path\$filename"
                 if ((Test-Path -Path $pathandfile) -eq $false){
                     New-Item -Path $path -Name $filename -ItemType "file" -Value "terraform { `r`n backend ""azurerm"" {`r`n} `r`n }"
@@ -87,7 +92,7 @@ stages:
               progressPreference: "silentlyContinue"
               failOnStderr: true
               pwsh: true
-              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
+              workingDirectory: $(Agent.TempDirectory)/environment
               env:
                 AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
@@ -97,7 +102,7 @@ stages:
                 ARM_TENANT_ID: $(sp_tenantId) 
           - task: file-creator@6
             inputs:
-              filepath: '$(System.DefaultWorkingDirectory)/azure.conf'
+              filepath: '$(Agent.TempDirectory)/environment/azure.conf'
               filecontent: |
                 resource_group_name  = "rg-test-rnd"
                 storage_account_name = "saterraformsbx1"
@@ -110,11 +115,11 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform init -backend-config='$(System.DefaultWorkingDirectory)/azure.conf' -input=false  -reconfigure
+                terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false  -reconfigure
               displayName: "Task - Terraform Initialize"
               targetType: "inline"
               pwsh: true
-              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
+              workingDirectory: $(Agent.TempDirectory)/environment
               env:
                 AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
@@ -134,7 +139,7 @@ stages:
               failOnStderr: false
               ignoreLASTEXITCODE: true
               pwsh: true
-              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
+              workingDirectory: $(Agent.TempDirectory)/environment
               env:
                 AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
@@ -150,7 +155,7 @@ stages:
               displayName: "Task - Plan"
               targetType: "inline"
               pwsh: true
-              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
+              workingDirectory: $(Agent.TempDirectory)/environment
               env:
                 AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
@@ -186,12 +191,8 @@ stages:
               displayName: "Task - Change Drift"
               targetType: "inline"
               pwsh: true
-              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
-          - task: CopyFiles@2
-            inputs:
-              SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
-              Contents: '**'
-              TargetFolder: '$(Pipeline.Workspace)/cocoy'
+              workingDirectory: $(Agent.TempDirectory)/environment
+
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
           #   parameters:
           #     script: "terraform apply -input=false -auto-approve"
@@ -209,15 +210,19 @@ stages:
 
           - task: TerraformOutput@1
             inputs:
-              outputFilePath: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/tfplan'
+              outputFilePath: '$(Agent.TempDirectory)/environment/tfplan'
               artifactName: 'sbx'
 
           - task: PublishBuildArtifacts@1
             inputs:
-              pathtoPublish: '$(Pipeline.Workspace)/cocoy'
+              pathtoPublish: '$(Agent.TempDirectory)/environment/tfplan'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
-
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(Agent.TempDirectory)/environment/.terraform.lock.hcl'
+              artifactName: 'TerraformPlan'
+              publishLocation: 'Container'
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
           #   parameters:
           #     script: "terraform destroy -input=false -auto-approve"
@@ -243,7 +248,7 @@ stages:
             inputs:
               buildType: 'current'
               artifactName: 'TerraformPlan'
-              targetPath: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
+              targetPath: '$(Agent.TempDirectory)/environment'
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
@@ -252,7 +257,7 @@ stages:
               displayName: "Task - Apply"
               targetType: "inline"
               pwsh: true
-              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
+              workingDirectory: $(Agent.TempDirectory)/environment
               env:
                 AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
