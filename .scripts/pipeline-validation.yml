@@ -151,8 +151,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform plan -compact-warnings -input=false -out="tfplan"
-                terraform destroy -input=false -auto-approve
+                terraform plan -compact-warnings -input=false -out="tfplan" -lock=false 
               displayName: "Task - Plan"
               targetType: "inline"
               pwsh: true
