@@ -89,8 +89,6 @@ stages:
                 }
               displayName: "Task - Inject State Management"
               targetType: "inline"
-              progressPreference: "silentlyContinue"
-              failOnStderr: true
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
@@ -100,6 +98,7 @@ stages:
                 ARM_CLIENT_SECRET: $(sp_clientSecret)
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
+
           - task: file-creator@6
             inputs:
               filepath: '$(Agent.TempDirectory)/environment/azure.conf'
@@ -279,11 +278,25 @@ stages:
               fileoverwrite: true
               endWithNewLine: true
               verbose: true
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false -reconfigure
+              displayName: "Task - Terraform Initialize"
+              targetType: "inline"
+              pwsh: true
+              workingDirectory: $(Agent.TempDirectory)/environment
+              env:
+                AAD_USE_MICROSOFT_GRAPH: 1
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false 
                 terraform apply -lock=true -lock-timeout=5m -input=false -auto-approve tfplan
               displayName: "Task - Apply"
               targetType: "inline"
