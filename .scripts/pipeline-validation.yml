@@ -73,43 +73,49 @@ stages:
         displayName: 'CICD - TF Plan Tenant 1'
         container: dcl-azdo-container
         steps:
+          # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          #   parameters:
+          #     script: |
+          #       $filename = "backend.tf"
+          #       $path = "$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg"
+          #       $pathandfile = "$path\$filename"
+          #       if ((Test-Path -Path $pathandfile) -eq $false){
+          #           New-Item -Path $path -Name $filename -ItemType "file" -Value "terraform { `r`n backend ""azurerm"" {`r`n} `r`n }"
+          #       }
+          #     displayName: "Task - Inject State Management"
+          #     targetType: "inline"
+          #     progressPreference: "silentlyContinue"
+          #     failOnStderr: true
+          #     pwsh: true
+          #     workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
+          #     env:
+          #       AAD_USE_MICROSOFT_GRAPH: 1
+          #       TF_IN_AUTOMATION: true
+          #       ARM_CLIENT_ID: $(sp_clientId)
+          #       ARM_CLIENT_SECRET: $(sp_clientSecret)
+          #       ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+          #       ARM_TENANT_ID: $(sp_tenantId) 
+          # - task: file-creator@6
+          #   inputs:
+          #     filepath: '$(System.DefaultWorkingDirectory)/azure.conf'
+          #     filecontent: |
+          #       resource_group_name  = "rg-test-rnd"
+          #       storage_account_name = "saterraformsbx1"
+          #       container_name       = "terraformstatestoragesandbox"
+          #       key                  = "devsecops-azure-resource-group-terraform-sbx.tfstate"
+          #       access_key           = "$(tf_backend_storage_account_key)"
+          #     fileoverwrite: true
+          #     endWithNewLine: true
+          #     verbose: true
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                $filename = "backend.tf"
-                $path = "$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg"
-                $pathandfile = "$path\$filename"
-                if ((Test-Path -Path $pathandfile) -eq $false){
-                    New-Item -Path $path -Name $filename -ItemType "file" -Value "terraform { `r`n backend ""azurerm"" {`r`n} `r`n }"
-                }
-              displayName: "Task - Inject State Management"
-              targetType: "inline"
-              progressPreference: "silentlyContinue"
-              failOnStderr: true
-              pwsh: true
-              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
-              env:
-                AAD_USE_MICROSOFT_GRAPH: 1
-                TF_IN_AUTOMATION: true
-                ARM_CLIENT_ID: $(sp_clientId)
-                ARM_CLIENT_SECRET: $(sp_clientSecret)
-                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
-                ARM_TENANT_ID: $(sp_tenantId) 
-          - task: file-creator@6
-            inputs:
-              filepath: '$(System.DefaultWorkingDirectory)/azure.conf'
-              filecontent: |
-                resource_group_name  = "rg-test-rnd"
-                storage_account_name = "saterraformsbx1"
-                container_name       = "terraformstatestoragesandbox"
-                key                  = "devsecops-azure-resource-group-terraform-sbx.tfstate"
-                access_key           = "$(tf_backend_storage_account_key)"
-              fileoverwrite: true
-              endWithNewLine: true
-              verbose: true
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-            parameters:
-              script: terraform init -backend-config='$(System.DefaultWorkingDirectory)/azure.conf' -reconfigure -input=false
+                terraform init \
+                -input=false \
+                -backend-config="resource_group_name=rg-test-rnd"" \
+                -backend-config="storage_account_name=saterraformsbx1" \
+                -backend-config="container_name=terraformstatestoragesandbox" \
+                -backend-config=key="devsecops-azure-resource-group-terraform-sbx.tfstate"          
               displayName: "Task - Terraform Initialize"
               targetType: "inline"
               pwsh: true
@@ -193,11 +199,13 @@ stages:
               outputFilePath: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/terraform.tfplan'
               artifactName: 'sbx'
 
-          - task: PublishBuildArtifacts@1
+          - task: PublishPipelineArtifact@1
+            displayName: Publish Plan artifact
             inputs:
-              pathtoPublish: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/terraform.tfplan'
+              targetPath: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/terraform.tfplan
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
+
       - job: TerraformAppl
         displayName: 'CICD - TF Apply Tenant 1'
         dependsOn: TerraformPlan1
@@ -209,13 +217,12 @@ stages:
               buildType: 'current'
               artifactName: 'TerraformPlan'
               targetPath: '$(Pipeline.Workspace)'
- 
+
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform init -lockfile=readonly -backend=false
-                terraform apply -lock-timeout=30m -compact-warnings -input=false -auto-approve "terraform.tfplan"
-                terraform output -json > output.json
+                terraform apply "terraform.tfplan" -input=false -auto-approve 
+                # terraform output -json > output.json
               displayName: "Task - Apply"
               targetType: "inline"
               pwsh: true
