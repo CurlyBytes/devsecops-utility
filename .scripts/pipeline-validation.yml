@@ -15,7 +15,7 @@ resources:
     image: acidglshared.azurecr.io/terraform-devsecops-utility-shared:latest
     endpoint: terraform-az-dg
     volumes:
-      - ./src/infrastructure-as-code/terraform:/code
+      - ./home/vsts/work/1/s/src/infrastructure-as-code/terraform:/code
 variables:
   - group: "eac-validation"
   - group: "tenant1"
