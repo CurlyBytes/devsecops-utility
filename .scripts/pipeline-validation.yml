@@ -192,6 +192,7 @@ stages:
               SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
               Contents: |
                 tfplan
+                .terraform
                 .terraform.lock.hcl
               TargetFolder: '$(Pipeline.Workspace)/cocoy'
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
@@ -250,7 +251,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                #terraform init -lockfile=readonly
+                terraform init -lockfile=readonly
                 terraform apply -input=false -auto-approve tfplan
               displayName: "Task - Apply"
               targetType: "inline"
