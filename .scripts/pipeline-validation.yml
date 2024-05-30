@@ -218,6 +218,12 @@ stages:
               pathtoPublish: '$(Agent.TempDirectory)/environment/tfplan'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(Agent.TempDirectory)/environment/.terraform.lock.hcl'
+              artifactName: 'TerraformPlan'
+              publishLocation: 'Container'
+
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
           #   parameters:
           #     script: "terraform destroy -input=false -auto-approve"
@@ -278,13 +284,13 @@ stages:
                 access_key           = "$(tf_backend_storage_account_key)"
               fileoverwrite: true
               endWithNewLine: true
-              verbose: true 
+              verbose: true
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
                 terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf'
-                terraform apply -input=false -auto-approve tfplan
+                terraform apply -input=false -auto-approve
               displayName: "Task - Apply"
               targetType: "inline"
               pwsh: true
