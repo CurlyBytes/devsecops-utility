@@ -249,7 +249,6 @@ stages:
             parameters:
               script: |
                 chmod -R +x .terraform
-                terraform init -lockfile=readonly -backend=false
                 terraform apply -input=false -auto-approve
               displayName: "Task - Apply"
               targetType: "inline"
