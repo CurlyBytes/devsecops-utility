@@ -235,11 +235,6 @@ stages:
         container: dcl-azdo-container
         steps:
           - checkout: none
-          - task: DownloadPipelineArtifact@2
-            inputs:
-              buildType: 'current'
-              artifactName: 'TerraformPlan'
-              targetPath: '$(Agent.TempDirectory)/environment'
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
