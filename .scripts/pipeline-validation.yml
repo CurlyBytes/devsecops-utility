@@ -312,7 +312,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform destroy -input=false -auto-approve
+                terraform destroy -input=false -auto-approve -lock=true 
               displayName: "Task - Destroy"
               targetType: "inline"
               pwsh: true
