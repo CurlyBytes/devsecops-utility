@@ -224,7 +224,7 @@ stages:
               displayName: "Task - Destroy"
               targetType: "inline"
               pwsh: true
-              workingDirectory: $(Pipeline.Workspace)
+              workingDirectory: $(Pipeline.Workspace)/cocoy
               env:
                 AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
