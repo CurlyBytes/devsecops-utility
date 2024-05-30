@@ -14,8 +14,6 @@ resources:
   - container: dcl-azdo-container
     image: acidglshared.azurecr.io/terraform-devsecops-utility-shared:latest
     endpoint: terraform-az-dg
-    volumes:
-      - ./home/vsts/work/1/s/src/infrastructure-as-code/terraform:/code
 variables:
   - group: "eac-validation"
   - group: "tenant1"
