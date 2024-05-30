@@ -187,7 +187,25 @@ stages:
               targetType: "inline"
               pwsh: true
               workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
-
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
+              Contents: '**'
+              TargetFolder: '$(Pipeline.Workspace)'
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: "terraform apply -input=false -auto-approve"
+              displayName: "Task - Apply"
+              targetType: "inline"
+              pwsh: true
+              workingDirectory: $(Pipeline.Workspace)
+              env:
+                AAD_USE_MICROSOFT_GRAPH: 1
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
 
           - task: TerraformOutput@1
             inputs:
@@ -199,6 +217,7 @@ stages:
               pathtoPublish: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/tfplan'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
+
 
       - job: TerraformAppl
         displayName: 'CICD - TF Apply Tenant 1'
