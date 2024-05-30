@@ -286,7 +286,7 @@ stages:
             parameters:
               script: |
                 terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf'
-                terraform apply -input=false -auto-approve tfplan
+                terraform apply -lock=true -lock-timeout=5m -input=false -auto-approve tfplan
               displayName: "Task - Apply"
               targetType: "inline"
               pwsh: true
