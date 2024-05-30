@@ -245,7 +245,6 @@ stages:
               buildType: 'current'
               artifactName: 'TerraformPlan'
               targetPath: '$(Agent.TempDirectory)/environment'
-
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
@@ -284,7 +283,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf'
+                terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false 
                 terraform apply -lock=true -lock-timeout=5m -input=false -auto-approve tfplan
               displayName: "Task - Apply"
               targetType: "inline"
