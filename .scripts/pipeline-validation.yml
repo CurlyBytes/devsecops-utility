@@ -213,14 +213,20 @@ stages:
               outputFilePath: '$(Agent.TempDirectory)/environment/tfplan'
               artifactName: 'sbx'
 
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(Agent.TempDirectory)/environment'
+              Contents: |
+                tfplan
+                .terraform.lock.hcl
+                .terraform/**
+              TargetFolder: '$(Agent.TempDirectory)/terraform'
+              preserveTimestamp: true
+              retryCount: '2'
+
           - task: PublishBuildArtifacts@1
             inputs:
-              pathtoPublish: '$(Agent.TempDirectory)/environment/tfplan'
-              artifactName: 'TerraformPlan'
-              publishLocation: 'Container'
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathtoPublish: '$(Agent.TempDirectory)/environment/.terraform.lock.hcl'
+              pathtoPublish: '$(Agent.TempDirectory)/terraform'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
@@ -254,7 +260,6 @@ stages:
             parameters:
               script: |
                 chmod -R +x .terraform
-                terraform init -lockfile=readonly -backend=false
                 terraform apply -input=false -auto-approve
               displayName: "Task - Apply"
               targetType: "inline"
