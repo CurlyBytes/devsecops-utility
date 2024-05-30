@@ -214,7 +214,7 @@ stages:
 
           - task: PublishBuildArtifacts@1
             inputs:
-              pathtoPublish: '$(Pipeline.Workspace)'
+              pathtoPublish: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/tfplan'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
 
