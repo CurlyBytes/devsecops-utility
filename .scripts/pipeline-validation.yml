@@ -146,7 +146,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform plan -compact-warnings -input=false -out="terraform.tfplan"
+                terraform plan -compact-warnings -input=false -out="tfplan"
               displayName: "Task - Plan"
               targetType: "inline"
               pwsh: true
@@ -162,8 +162,8 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform show -json terraform.tfplan > terraform.json
-                $plan = $(terraform show -json terraform.tfplan | ConvertFrom-Json)
+                terraform show -json tfplan > terraform.json
+                $plan = $(terraform show -json tfplan | ConvertFrom-Json)
                 $actions = $plan.resource_changes.change.actions
                 
                 Write-Host "Terraform actions : $actions"
@@ -191,12 +191,12 @@ stages:
 
           - task: TerraformOutput@1
             inputs:
-              outputFilePath: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/terraform.tfplan'
+              outputFilePath: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/tfplan'
               artifactName: 'sbx'
 
           - task: PublishBuildArtifacts@1
             inputs:
-              pathtoPublish: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/terraform.tfplan'
+              pathtoPublish: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/tfplan'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
 
@@ -214,7 +214,7 @@ stages:
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
-              script: 'terraform apply "terraform.tfplan" -input=false -auto-approve'
+              script: "terraform apply tfplan -input=false -auto-approve"
               displayName: "Task - Apply"
               targetType: "inline"
               pwsh: true
