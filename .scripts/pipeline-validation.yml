@@ -289,7 +289,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf'
+                terraform init -lockfile=readonly 
                 terraform apply -input=false -auto-approve
               displayName: "Task - Apply"
               targetType: "inline"
