@@ -219,7 +219,7 @@ stages:
               displayName: "Task - Apply"
               targetType: "inline"
               pwsh: true
-              workingDirectory: $(Pipeline.Workspace)/TerraformPlan
+              workingDirectory: $(Pipeline.Workspace)
               env:
                 AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
