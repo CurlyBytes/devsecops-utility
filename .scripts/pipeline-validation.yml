@@ -278,7 +278,7 @@ stages:
                 access_key           = "$(tf_backend_storage_account_key)"
               fileoverwrite: true
               endWithNewLine: true
-              verbose: true
+              verbose: true 
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
