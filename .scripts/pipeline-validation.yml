@@ -93,7 +93,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform fmt -check=true -write=false -diff=true
+                terraform fmt -check=true -write=false -diff=true 
                 terraform validate 
               displayName: "Task - Validate"
               targetType: "inline"
@@ -125,3 +125,33 @@ stages:
                 ARM_CLIENT_SECRET: $(sp_clientSecret)
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
+
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                terraform show -json terraform.tfplan > terraform.json
+                $plan = $(terraform show -json terraform.tfplan | ConvertFrom-Json)
+                $actions = $plan.resource_changes.change.actions
+                
+                Write-Host "Terraform actions : $actions"
+                if (($actions -contains 'create') -or ($actions -contains 'delete') -or ($actions -contains 'update'))
+                {
+                  Write-Host "Terraform will perform the following actions : $actions"
+                  Write-Host "##vso[task.setvariable variable=ANYTFCHANGES;]true"
+                }
+                else
+                {
+                  Write-Host "There is no change detected in Terraform tfplan file"
+                }
+
+                $resourceChanges = $plan.resource_changes
+                $add = ($resourceChanges | Where {$_.change.actions -contains "create"}).length
+                $change = ($resourceChanges | Where {$_.change.actions -contains "update"}).length
+                $remove = ($resourceChanges | Where {$_.change.actions -contains "delete"}).length
+                $totalChanges = $add + $change + $remove      
+                Write-Host "There are $totalChanges ($add to add, $change to change, $remove to remove)"
+              displayName: "Task - Plan"
+              targetType: "inline"
+              pwsh: true
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
+              
