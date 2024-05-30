@@ -187,11 +187,14 @@ stages:
               targetType: "inline"
               pwsh: true
               workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
-          # - task: CopyFiles@2
-          #   inputs:
-          #     SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
-          #     Contents: '**'
-          #     TargetFolder: '$(Pipeline.Workspace)/cocoy'
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
+              Contents: |
+                tfplan
+                .terraform
+                .terraform.lock.hcl
+              TargetFolder: '$(Pipeline.Workspace)/cocoy'
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
           #   parameters:
           #     script: "terraform apply -input=false -auto-approve"
@@ -214,7 +217,7 @@ stages:
 
           - task: PublishBuildArtifacts@1
             inputs:
-              pathtoPublish: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/tfplan'
+              pathtoPublish: '$(Pipeline.Workspace)/cocoy'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
 
