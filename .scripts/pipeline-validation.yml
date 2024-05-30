@@ -203,6 +203,7 @@ stages:
         dependsOn: TerraformPlan1
         container: dcl-azdo-container
         steps:
+          - checkout: none
           - task: DownloadPipelineArtifact@2
             inputs:
               buildType: 'current'
@@ -211,15 +212,12 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform fmt -check=true -write=false -diff=true 
-                terraform validate 
+                terraform apply -lock-timeout=30m -compact-warnings -input=false -auto-approve "terraform.tfplan"
+                terraform output -json > output.json
               displayName: "Task - Validate"
               targetType: "inline"
-              progressPreference: "silentlyContinue"
-              failOnStderr: false
-              ignoreLASTEXITCODE: true
               pwsh: true
-              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
+              workingDirectory: $(Pipeline.Workspace)
               env:
                 AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
