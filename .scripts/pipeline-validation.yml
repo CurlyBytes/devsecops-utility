@@ -251,7 +251,6 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform init -lockfile=readonly
                 terraform apply -input=false -auto-approve tfplan
               displayName: "Task - Apply"
               targetType: "inline"
