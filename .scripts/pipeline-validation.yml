@@ -110,12 +110,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform init \
-                -input=false \
-                -backend-config=resource_group_name=rg-test-rnd \
-                -backend-config=storage_account_name=saterraformsbx1 \
-                -backend-config=container_name=terraformstatestoragesandbox \
-                -backend-config=key=devsecops-azure-resource-group-terraform-sbx.tfstate         
+                terraform init -input=false -backend-config=resource_group_name=rg-test-rnd -backend-config=storage_account_name=saterraformsbx1 -backend-config=container_name=terraformstatestoragesandbox -backend-config=key=devsecops-azure-resource-group-terraform-sbx.tfstate         
               displayName: "Task - Terraform Initialize"
               targetType: "inline"
               pwsh: true
