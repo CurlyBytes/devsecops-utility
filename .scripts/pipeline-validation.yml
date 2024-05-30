@@ -214,9 +214,7 @@ stages:
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
-              script: |
-                terraform apply -input=false -auto-approve 
-                # terraform output -json > output.json
+              script: "terraform apply -input=false -auto-approve"
               displayName: "Task - Apply"
               targetType: "inline"
               pwsh: true
