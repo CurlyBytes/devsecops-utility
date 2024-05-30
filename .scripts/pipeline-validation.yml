@@ -246,7 +246,7 @@ stages:
             parameters:
               script: |
                 terraform init -lockfile=readonly 
-                terraform apply -input=false -auto-approve
+                terraform apply -input=false -auto-approve tfplan
               displayName: "Task - Apply"
               targetType: "inline"
               pwsh: true
