@@ -191,7 +191,7 @@ stages:
             inputs:
               SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
               Contents: '**'
-              TargetFolder: '$(Pipeline.Workspace)'
+              TargetFolder: '$(Pipeline.Workspace)/cocoy'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: "terraform apply -input=false -auto-approve"
@@ -214,10 +214,24 @@ stages:
 
           - task: PublishBuildArtifacts@1
             inputs:
-              pathtoPublish: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/tfplan'
+              pathtoPublish: '$(Pipeline.Workspace)/cocoy'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
 
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: "terraform destroy -input=false -auto-approve"
+              displayName: "Task - Destroy"
+              targetType: "inline"
+              pwsh: true
+              workingDirectory: $(Pipeline.Workspace)
+              env:
+                AAD_USE_MICROSOFT_GRAPH: 1
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
 
       - job: TerraformAppl
         displayName: 'CICD - TF Apply Tenant 1'
