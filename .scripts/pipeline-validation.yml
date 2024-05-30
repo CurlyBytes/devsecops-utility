@@ -213,12 +213,13 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
+                terraform init
                 terraform apply -lock-timeout=30m -compact-warnings -input=false -auto-approve "terraform.tfplan"
                 terraform output -json > output.json
-              displayName: "Task - Validate"
+              displayName: "Task - Apply"
               targetType: "inline"
               pwsh: true
-              workingDirectory: $(Pipeline.Workspace)
+              workingDirectory: $(Pipeline.Workspace)/TerraformPlan
               env:
                 AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
