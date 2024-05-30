@@ -75,6 +75,29 @@ stages:
         steps:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
+              script: |
+                $filename = "backend.tf"
+                $path = "${{parameters.terraformPath}}"
+                $pathandfile = "$path\$filename"
+                if ((Test-Path -Path $pathandfile) -eq $false){
+                    New-Item -Path $path -Name $filename -ItemType "file" -Value "terraform { `r`n backend ""azurerm"" {`r`n} `r`n }"
+                }
+              displayName: "Task - Inject State Management"
+              targetType: "inline"
+              progressPreference: "silentlyContinue"
+              failOnStderr: true
+              pwsh: true
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
+              env:
+                AAD_USE_MICROSOFT_GRAPH: 1
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
+
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
               script: "terraform init"
               displayName: "Task - Terraform Initialize"
               targetType: "inline"
@@ -166,4 +189,28 @@ stages:
               pathtoPublish: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg/terraform.tfplan'
               artifactName: 'terraformPlan'
               publishLocation: 'Container'
-              
+      - job: TerraformAppl
+        displayName: 'CICD - TF Apply Tenant 1'
+        dependson: TerraformPlan1
+        container: dcl-azdo-container
+        steps:
+          - checkout: none
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                terraform fmt -check=true -write=false -diff=true 
+                terraform validate 
+              displayName: "Task - Validate"
+              targetType: "inline"
+              progressPreference: "silentlyContinue"
+              failOnStderr: false
+              ignoreLASTEXITCODE: true
+              pwsh: true
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
+              env:
+                AAD_USE_MICROSOFT_GRAPH: 1
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
