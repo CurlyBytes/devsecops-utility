@@ -109,12 +109,9 @@ stages:
               verbose: true
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
-              script: "terraform init -backend-config=$(System.DefaultWorkingDirectory)/azure.conf -reconfigure -input=false"
+              script: terraform init -backend-config='$(System.DefaultWorkingDirectory)/azure.conf' -reconfigure -input=false
               displayName: "Task - Terraform Initialize"
               targetType: "inline"
-              progressPreference: "silentlyContinue"
-              failOnStderr: false
-              ignoreLASTEXITCODE: true
               pwsh: true
               workingDirectory: $(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg
               env:
@@ -124,6 +121,7 @@ stages:
                 ARM_CLIENT_SECRET: $(sp_clientSecret)
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
+
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
