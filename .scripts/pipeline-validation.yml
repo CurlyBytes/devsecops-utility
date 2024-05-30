@@ -192,7 +192,6 @@ stages:
               SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
               Contents: |
                 tfplan
-                .terraform
                 .terraform.lock.hcl
               TargetFolder: '$(Pipeline.Workspace)/cocoy'
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
