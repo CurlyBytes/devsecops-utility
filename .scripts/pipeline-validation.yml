@@ -203,7 +203,6 @@ stages:
         dependsOn: TerraformPlan1
         container: dcl-azdo-container
         steps:
-          - checkout: none
           - task: DownloadPipelineArtifact@2
             inputs:
               buildType: 'current'
