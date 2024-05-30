@@ -110,7 +110,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform init -backend-config='$(System.DefaultWorkingDirectory)/azure.conf' -input=false
+                terraform init -backend-config='$(System.DefaultWorkingDirectory)/azure.conf' -input=false  -reconfigure
               displayName: "Task - Terraform Initialize"
               targetType: "inline"
               pwsh: true
@@ -190,10 +190,7 @@ stages:
           - task: CopyFiles@2
             inputs:
               SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
-              Contents: |
-                tfplan
-                .terraform
-                .terraform.lock.hcl
+              Contents: '**'
               TargetFolder: '$(Pipeline.Workspace)/cocoy'
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
           #   parameters:
