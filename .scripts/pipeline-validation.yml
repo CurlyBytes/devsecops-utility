@@ -156,7 +156,6 @@ stages:
             parameters:
               script: |
                 terraform plan -compact-warnings -input=false -out="tfplan" -lock=false -detailed-exitcode
-         
               displayName: "Task - Plan"
               targetType: "inline"
               ignoreLASTEXITCODE: true
