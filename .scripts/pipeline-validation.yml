@@ -118,19 +118,7 @@ stages:
               fileoverwrite: true
               endWithNewLine: true
               verbose: true
-          # - task: Cache@2
-          #   inputs:
-          #     key: 'terraform | "$(Agent.OS)" | .terraform'
-          #     restoreKeys: |
-          #       terraform | "$(Agent.OS)"
-          #     path: '.terraform'
-              
-          # - task: Cache@2
-          #   inputs:
-          #     key: 'terraform-lock | "$(Agent.OS)" | .terraform.lock.hcl'
-          #     restoreKeys: |
-          #       terraform-lock | "$(Agent.OS)"
-          #     path: '.terraform.lock.hcl'
+
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
@@ -170,7 +158,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform plan -compact-warnings -input=false -out="tfplan"
+                terraform plan -compact-warnings -input=false -out="tfplan" -lock=false
               displayName: "Task - Plan"
               targetType: "inline"
               pwsh: true
@@ -281,12 +269,16 @@ stages:
               buildType: 'current'
               artifactName: 'TerraformPlan'
               targetPath: '$(Agent.TempDirectory)/environment'
-
+          - task: Cache@2
+            displayName: "TF cache"
+            inputs:
+              key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
+              path: '$(Agent.TempDirectory)/environment/.terraform'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
                 chmod -R +x .terraform
-                terraform apply -input=false -auto-approve
+                terraform apply -input=false -auto-approve -lock=true -lock-timeout=5m
               displayName: "Task - Apply"
               targetType: "inline"
               pwsh: true
@@ -310,12 +302,16 @@ stages:
               buildType: 'current'
               artifactName: 'TerraformPlan'
               targetPath: '$(Agent.TempDirectory)/environment'
-
+          - task: Cache@2
+            displayName: "TF cache"
+            inputs:
+              key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
+              path: '$(Agent.TempDirectory)/environment/.terraform'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
                 chmod -R +x .terraform
-                terraform destroy -input=false -auto-approve
+                terraform destroy -input=false -auto-approve -lock=true -lock-timeout=1m
               displayName: "Task - Destroy"
               targetType: "inline"
               pwsh: true
