@@ -17,7 +17,8 @@ resources:
 variables:
   - group: "eac-validation"
   - group: "tenant1"
-
+  - name: HasChange
+    value: '2'
 stages:
   - stage: ContinousIntegration
     displayName: Continous Integration
@@ -160,7 +161,8 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform plan -compact-warnings -input=false -out="tfplan" -lock=false
+                terraform plan -compact-warnings -input=false -out="tfplan" -lock=false  -detailed-exitcode
+                echo "##vso[task.setvariable variable=HasChange]$?"
               displayName: "Task - Plan"
               targetType: "inline"
               pwsh: true
@@ -173,34 +175,34 @@ stages:
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-            parameters:
-              script: |
-                terraform show -json tfplan > terraform.json
-                $plan = $(terraform show -json tfplan | ConvertFrom-Json)
-                $actions = $plan.resource_changes.change.actions
+          # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          #   parameters:
+          #     script: |
+          #       terraform show -json tfplan > terraform.json
+          #       $plan = $(terraform show -json tfplan | ConvertFrom-Json)
+          #       $actions = $plan.resource_changes.change.actions
                 
-                Write-Host "Terraform actions : $actions"
-                if (($actions -contains 'create') -or ($actions -contains 'delete') -or ($actions -contains 'update'))
-                {
-                  Write-Host "Terraform will perform the following actions : $actions"
-                  Write-Host "##vso[task.setvariable variable=ANYTFCHANGES;]true"
-                }
-                else
-                {
-                  Write-Host "There is no change detected in Terraform tfplan file"
-                }
+          #       Write-Host "Terraform actions : $actions"
+          #       if (($actions -contains 'create') -or ($actions -contains 'delete') -or ($actions -contains 'update'))
+          #       {
+          #         Write-Host "Terraform will perform the following actions : $actions"
+          #         Write-Host "##vso[task.setvariable variable=ANYTFCHANGES;]true"
+          #       }
+          #       else
+          #       {
+          #         Write-Host "There is no change detected in Terraform tfplan file"
+          #       }
 
-                $resourceChanges = $plan.resource_changes
-                $add = ($resourceChanges | Where {$_.change.actions -contains "create"}).length
-                $change = ($resourceChanges | Where {$_.change.actions -contains "update"}).length
-                $remove = ($resourceChanges | Where {$_.change.actions -contains "delete"}).length
-                $totalChanges = $add + $change + $remove      
-                Write-Host "There are $totalChanges ($add to add, $change to change, $remove to remove)"
-              displayName: "Task - Change Drift"
-              targetType: "inline"
-              pwsh: true
-              workingDirectory: $(Agent.TempDirectory)/environment
+          #       $resourceChanges = $plan.resource_changes
+          #       $add = ($resourceChanges | Where {$_.change.actions -contains "create"}).length
+          #       $change = ($resourceChanges | Where {$_.change.actions -contains "update"}).length
+          #       $remove = ($resourceChanges | Where {$_.change.actions -contains "delete"}).length
+          #       $totalChanges = $add + $change + $remove      
+          #       Write-Host "There are $totalChanges ($add to add, $change to change, $remove to remove)"
+          #     displayName: "Task - Change Drift"
+          #     targetType: "inline"
+          #     pwsh: true
+          #     workingDirectory: $(Agent.TempDirectory)/environment
 
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
           #   parameters:
@@ -262,6 +264,7 @@ stages:
 
       - job: TerraformApply1
         displayName: 'CICD - TF Apply Tenant 1'
+        condition: eq(variables.HasChange, '2')
         dependsOn: TerraformPlan1
         container: dcl-azdo-container
         steps:
