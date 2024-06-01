@@ -307,8 +307,8 @@ stages:
             parameters:
               script: |
                 #chmod -R +x .terraform
-                terraform init -lockfile=readonly -backend=false
-                terraform destroy -input=false -auto-approve tfplan
+                terraform init -lockfile=readonly
+                terraform destroy -input=false -auto-approve
               displayName: "Task - Destroy"
               targetType: "inline"
               pwsh: true
