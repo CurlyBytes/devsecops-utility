@@ -78,7 +78,7 @@ stages:
             displayName: "TF cache"
             inputs:
               key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
-              path: '$(Agent.TempDirectory)/environment/.terraform'
+              path: '$(Agent.TempDirectory)/environment'
           - task: CopyFiles@2
             inputs:
               SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
@@ -162,6 +162,7 @@ stages:
                 echo "##vso[task.setvariable variable=HasChange]$?"
               displayName: "Task - Plan"
               targetType: "inline"
+              ignoreLASTEXITCODE: true
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
@@ -275,7 +276,7 @@ stages:
             displayName: "TF cache"
             inputs:
               key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
-              path: '$(Agent.TempDirectory)/environment/.terraform'
+              path: '$(Agent.TempDirectory)/environment'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
@@ -309,7 +310,7 @@ stages:
             displayName: "TF cache"
             inputs:
               key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
-              path: '$(Agent.TempDirectory)/environment/.terraform'
+              path: '$(Agent.TempDirectory)/environment'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
