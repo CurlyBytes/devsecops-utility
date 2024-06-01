@@ -112,19 +112,19 @@ stages:
               fileoverwrite: true
               endWithNewLine: true
               verbose: true
-          - task: Cache@2
-            inputs:
-              key: 'terraform | "$(Agent.OS)" | .terraform'
-              restoreKeys: |
-                terraform | "$(Agent.OS)"
-              path: '.terraform'
+          # - task: Cache@2
+          #   inputs:
+          #     key: 'terraform | "$(Agent.OS)" | .terraform'
+          #     restoreKeys: |
+          #       terraform | "$(Agent.OS)"
+          #     path: '.terraform'
               
-          - task: Cache@2
-            inputs:
-              key: 'terraform-lock | "$(Agent.OS)" | .terraform.lock.hcl'
-              restoreKeys: |
-                terraform-lock | "$(Agent.OS)"
-              path: '.terraform.lock.hcl'
+          # - task: Cache@2
+          #   inputs:
+          #     key: 'terraform-lock | "$(Agent.OS)" | .terraform.lock.hcl'
+          #     restoreKeys: |
+          #       terraform-lock | "$(Agent.OS)"
+          #     path: '.terraform.lock.hcl'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
