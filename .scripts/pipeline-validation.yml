@@ -73,6 +73,11 @@ stages:
         displayName: 'CICD - TF Plan Tenant 1'
         container: dcl-azdo-container
         steps:
+          - task: Cache@2
+            displayName: "TF cache"
+            inputs:
+              key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
+              path: '.terraform'
           - task: CopyFiles@2
             inputs:
               SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
