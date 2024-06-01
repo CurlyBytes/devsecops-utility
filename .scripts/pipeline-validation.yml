@@ -78,9 +78,6 @@ stages:
             displayName: "TF cache"
             inputs:
               key: 'terraform | "$(Agent.OS)" | .terraform | .terraform.lock.hcl'
-              restoreKeys: |
-                terraform | "$(Agent.OS)" 
-                terraform 
               path: '$(Agent.TempDirectory)/environment'
           - task: CopyFiles@2
             inputs:
@@ -278,9 +275,6 @@ stages:
             displayName: "TF cache"
             inputs:
               key: 'terraform | "$(Agent.OS)" | .terraform | .terraform.lock.hcl'
-              restoreKeys: |
-                terraform | "$(Agent.OS)" 
-                terraform 
               path: '$(Agent.TempDirectory)/environment'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
@@ -315,9 +309,6 @@ stages:
             displayName: "TF cache"
             inputs:
               key: 'terraform | "$(Agent.OS)" | .terraform | .terraform.lock.hcl'
-              restoreKeys: |
-                terraform | "$(Agent.OS)" 
-                terraform 
               path: '$(Agent.TempDirectory)/environment'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
