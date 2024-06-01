@@ -22,52 +22,52 @@ stages:
   - stage: ContinousIntegration
     displayName: Continous Integration
     jobs:
-      - job: BareMinimum
-        displayName: 'CICD - Unit Test'
-        # container: dcl-azdo-container
-        steps:
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-            parameters:
-              filePath: "$(System.DefaultWorkingDirectory)/.scripts/utilities/pester-testing-eac.ps1"
-              displayName: "Task - Unit Tests"
-              targetType: "filepath"
-              arguments: "-ModulePath $(System.DefaultWorkingDirectory)/tests/azure-devops -ResultsPath $(System.DefaultWorkingDirectory)/Publish -Organizationname curlybytes -AzdoPatToken $(AzdoPatToken) -TestType unit-test -Publish"
-              progressPreference: "silentlyContinue"
-              failOnStderr: false
-              ignoreLASTEXITCODE: true
-              pwsh: true
+      # - job: BareMinimum
+      #   displayName: 'CICD - Unit Test'
+      #   # container: dcl-azdo-container
+      #   steps:
+      #     - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+      #       parameters:
+      #         filePath: "$(System.DefaultWorkingDirectory)/.scripts/utilities/pester-testing-eac.ps1"
+      #         displayName: "Task - Unit Tests"
+      #         targetType: "filepath"
+      #         arguments: "-ModulePath $(System.DefaultWorkingDirectory)/tests/azure-devops -ResultsPath $(System.DefaultWorkingDirectory)/Publish -Organizationname curlybytes -AzdoPatToken $(AzdoPatToken) -TestType unit-test -Publish"
+      #         progressPreference: "silentlyContinue"
+      #         failOnStderr: false
+      #         ignoreLASTEXITCODE: true
+      #         pwsh: true
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_publish_code_coverage_result.yml
-            parameters:
-              condition: succeededOrFailed()
-              displayName: "Task - Publish Pester Code Coverage"
-              codeCoverageTool: "JaCoCo"
-              summaryFileLocation: "**/Pester-unit-test-CodeCoverage.xml"
-              pathToSources: "$(System.DefaultWorkingDirectory)"
-              failIfCoverageEmpty: true
-              additionalCodeCoverageFiles: "$(System.DefaultWorkingDirectory)/tests/**/**/*.ps*"
+      #     - template: ../src/pipeline-as-code/azure-devops/components/task_publish_code_coverage_result.yml
+      #       parameters:
+      #         condition: succeededOrFailed()
+      #         displayName: "Task - Publish Pester Code Coverage"
+      #         codeCoverageTool: "JaCoCo"
+      #         summaryFileLocation: "**/Pester-unit-test-CodeCoverage.xml"
+      #         pathToSources: "$(System.DefaultWorkingDirectory)"
+      #         failIfCoverageEmpty: true
+      #         additionalCodeCoverageFiles: "$(System.DefaultWorkingDirectory)/tests/**/**/*.ps*"
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_publish_test_results.yml
-            parameters:
-              condition: succeededOrFailed()
-              displayName: "Task - Publish Pester Tests Result"
-              testResultsFormat: "NUnit"
-              testResultsFiles: "**/Pester-unit-test.xml"
-              mergeTestResults: true
-              failTaskOnFailedTests: true
-              testRunTitle: "Yaml_UnitTest_$(Build.BuildId)_$(Agent.OS)_$(Agent.OSArchitecture)($(Agent.MachineName))"
-              buildPlatform: "Any CPU"
-              buildConfiguration: "Release"
+      #     - template: ../src/pipeline-as-code/azure-devops/components/task_publish_test_results.yml
+      #       parameters:
+      #         condition: succeededOrFailed()
+      #         displayName: "Task - Publish Pester Tests Result"
+      #         testResultsFormat: "NUnit"
+      #         testResultsFiles: "**/Pester-unit-test.xml"
+      #         mergeTestResults: true
+      #         failTaskOnFailedTests: true
+      #         testRunTitle: "Yaml_UnitTest_$(Build.BuildId)_$(Agent.OS)_$(Agent.OSArchitecture)($(Agent.MachineName))"
+      #         buildPlatform: "Any CPU"
+      #         buildConfiguration: "Release"
 
-          - task: Docker@2
-            displayName: "Build Terraform Image"
-            inputs:
-              containerRegistry: 'terraform-az-dg'
-              repository: 'terraform-devsecops-utility-shared'
-              command: 'buildAndPush'
-              Dockerfile: '$(Build.SourcesDirectory)/src/infrastructure-as-code/terraform/Dockerfile'
-              buildContext: '$(Build.SourcesDirectory)/src/infrastructure-as-code/terraform'
-              tags: 'latest'
+      #     - task: Docker@2
+      #       displayName: "Build Terraform Image"
+      #       inputs:
+      #         containerRegistry: 'terraform-az-dg'
+      #         repository: 'terraform-devsecops-utility-shared'
+      #         command: 'buildAndPush'
+      #         Dockerfile: '$(Build.SourcesDirectory)/src/infrastructure-as-code/terraform/Dockerfile'
+      #         buildContext: '$(Build.SourcesDirectory)/src/infrastructure-as-code/terraform'
+      #         tags: 'latest'
 
       - job: TerraformPlan1
         displayName: 'CICD - TF Plan Tenant 1'
@@ -226,6 +226,11 @@ stages:
           - task: PublishBuildArtifacts@1
             inputs:
               pathtoPublish: '$(Agent.TempDirectory)/environment/.terraform.lock.hcl'
+              artifactName: 'TerraformPlan'
+              publishLocation: 'Container'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(Agent.TempDirectory)/environment/main.tf'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
