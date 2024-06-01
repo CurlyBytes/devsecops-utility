@@ -281,7 +281,6 @@ stages:
             parameters:
               script: |
                 chmod -R +x .terraform
-                terraform init -lockfile=readonly -backend=false
                 terraform apply -input=false -auto-approve -lock=true -lock-timeout=5m
               displayName: "Task - Apply"
               targetType: "inline"
@@ -315,7 +314,6 @@ stages:
             parameters:
               script: |
                 chmod -R +x .terraform
-                terraform init -lockfile=readonly -backend=false
                 terraform destroy -input=false -auto-approve -lock=true -lock-timeout=1m
               displayName: "Task - Destroy"
               targetType: "inline"
