@@ -74,10 +74,19 @@ stages:
         container: dcl-azdo-container
         steps:
           - task: Cache@2
-            displayName: "TF cache"
+            displayName: "TF cache terraform plugins"
             inputs:
-              key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
-              path: '.terraform'
+              key: 'terraform | "$(Agent.OS)" | .terraform'
+              restoreKeys: |
+                terraform | "$(Agent.OS)"
+              path: '$(Agent.TempDirectory)/environment/.terraform'
+          - task: Cache@2
+            displayName: "TF cache hcl"
+            inputs:
+              key: 'terraform | "$(Agent.OS)" | .terraform.lock.hcl'
+              restoreKeys: |
+                terraform | "$(Agent.OS)"
+              path: '$(Agent.TempDirectory)/environment/.terraform.lock.hcl'
           - task: CopyFiles@2
             inputs:
               SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
@@ -236,19 +245,18 @@ stages:
           #     pathtoPublish: '$(Agent.TempDirectory)/environment'
           #     artifactName: 'TerraformPlan'
           #     publishLocation: 'Container'
+
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(Agent.TempDirectory)/environment'
+              Contents: |
+                .terraform.lock.hcl
+                .terraform
+                tfplan
+              TargetFolder: '$(Agent.TempDirectory)/terraform-environment'
           - task: PublishBuildArtifacts@1
             inputs:
-              pathtoPublish: '$(Agent.TempDirectory)/environment/tfplan'
-              artifactName: 'TerraformPlan'
-              publishLocation: 'Container'
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathtoPublish: '$(Agent.TempDirectory)/environment/.terraform.lock.hcl'
-              artifactName: 'TerraformPlan'
-              publishLocation: 'Container'
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathtoPublish: '$(Agent.TempDirectory)/environment/main.tf'
+              pathtoPublish: '$(Agent.TempDirectory)/terraform-environment'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
           # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
@@ -281,8 +289,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                #chmod -R +x .terraform
-                terraform init -lockfile=readonly
+                chmod -R +x .terraform
                 terraform apply -input=false -auto-approve
               displayName: "Task - Apply"
               targetType: "inline"
@@ -311,8 +318,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                #chmod -R +x .terraform
-                terraform init -lockfile=readonly
+                chmod -R +x .terraform
                 terraform destroy -input=false -auto-approve
               displayName: "Task - Destroy"
               targetType: "inline"
