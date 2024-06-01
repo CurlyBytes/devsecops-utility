@@ -74,18 +74,14 @@ stages:
         container: dcl-azdo-container
         steps:
           - task: Cache@2
-            displayName: "TF cache terraform plugins"
+            displayName: "TF cache"
             inputs:
-              key: 'terraform | "$(Agent.OS)" | .terraform'
-              restoreKeys: |
-                terraform | "$(Agent.OS)"
+              key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
               path: '$(Agent.TempDirectory)/environment/.terraform'
           - task: Cache@2
-            displayName: "TF cache hcl"
+            displayName: "TF cache"
             inputs:
-              key: 'terraform | "$(Agent.OS)" | .terraform.lock.hcl'
-              restoreKeys: |
-                terraform | "$(Agent.OS)"
+              key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
               path: '$(Agent.TempDirectory)/environment/.terraform.lock.hcl'
           - task: CopyFiles@2
             inputs:
