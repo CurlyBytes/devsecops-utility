@@ -76,9 +76,11 @@ stages:
           - task: Cache@2
             displayName: "TF cache"
             inputs:
-              key: '"terraform | $(Agent.OS) | reponame"'
+              key: 'terraform | "$(Agent.OS)" | .terraform | $(Build.SourceVersion) | reponame'
+              restoreKeys: |
+                terraform | "$(Agent.OS)" | .terraform
+                terraform | "$(Agent.OS)"
               path: '$(Agent.TempDirectory)/environment/.terraform'
-
           - task: CopyFiles@2
             inputs:
               SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
@@ -272,8 +274,33 @@ stages:
           - task: Cache@2
             displayName: "TF cache"
             inputs:
-              key: '"terraform | $(Agent.OS) | reponame"'
+              key: 'terraform | "$(Agent.OS)" | .terraform | $(Build.SourceVersion) | reponame'
+              restoreKeys: |
+                terraform | "$(Agent.OS)" | .terraform
+                terraform | "$(Agent.OS)"
               path: '$(Agent.TempDirectory)/environment/.terraform'
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                $filename = "backend.tf"
+                $path = "$(Agent.TempDirectory)/environment"
+                $pathandfile = "$path\$filename"
+                if ((Test-Path -Path $pathandfile) -eq $false){
+                    New-Item -Path $path -Name $filename -ItemType "file" -Value "terraform { `r`n backend ""azurerm"" {`r`n} `r`n }"
+                }
+              displayName: "Task - Inject State Management"
+              targetType: "inline"
+              progressPreference: "silentlyContinue"
+              failOnStderr: true
+              pwsh: true
+              workingDirectory: $(Agent.TempDirectory)/environment
+              env:
+                AAD_USE_MICROSOFT_GRAPH: 1
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
@@ -306,8 +333,33 @@ stages:
           - task: Cache@2
             displayName: "TF cache"
             inputs:
-              key: '"terraform | $(Agent.OS) | reponame"'
+              key: 'terraform | "$(Agent.OS)" | .terraform | $(Build.SourceVersion) | reponame'
+              restoreKeys: |
+                terraform | "$(Agent.OS)" | .terraform
+                terraform | "$(Agent.OS)"
               path: '$(Agent.TempDirectory)/environment/.terraform'
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                $filename = "backend.tf"
+                $path = "$(Agent.TempDirectory)/environment"
+                $pathandfile = "$path\$filename"
+                if ((Test-Path -Path $pathandfile) -eq $false){
+                    New-Item -Path $path -Name $filename -ItemType "file" -Value "terraform { `r`n backend ""azurerm"" {`r`n} `r`n }"
+                }
+              displayName: "Task - Inject State Management"
+              targetType: "inline"
+              progressPreference: "silentlyContinue"
+              failOnStderr: true
+              pwsh: true
+              workingDirectory: $(Agent.TempDirectory)/environment
+              env:
+                AAD_USE_MICROSOFT_GRAPH: 1
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
