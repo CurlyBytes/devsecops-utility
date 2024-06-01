@@ -100,7 +100,6 @@ stages:
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
-                AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
                 ARM_CLIENT_ID: $(sp_clientId)
                 ARM_CLIENT_SECRET: $(sp_clientSecret)
@@ -128,7 +127,6 @@ stages:
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
-                AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
                 ARM_CLIENT_ID: $(sp_clientId)
                 ARM_CLIENT_SECRET: $(sp_clientSecret)
@@ -148,7 +146,6 @@ stages:
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
-                AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
                 ARM_CLIENT_ID: $(sp_clientId)
                 ARM_CLIENT_SECRET: $(sp_clientSecret)
@@ -158,64 +155,48 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform plan -compact-warnings -input=false -out="tfplan" -lock=false  -detailed-exitcode
-                echo "##vso[task.setvariable variable=HasChange]$?"
+                terraform plan -compact-warnings -input=false -out="tfplan" -lock=false -detailed-exitcode
+         
               displayName: "Task - Plan"
               targetType: "inline"
               ignoreLASTEXITCODE: true
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
-                AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
                 ARM_CLIENT_ID: $(sp_clientId)
                 ARM_CLIENT_SECRET: $(sp_clientSecret)
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
 
-          # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-          #   parameters:
-          #     script: |
-          #       terraform show -json tfplan > terraform.json
-          #       $plan = $(terraform show -json tfplan | ConvertFrom-Json)
-          #       $actions = $plan.resource_changes.change.actions
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                terraform show -json tfplan > terraform.json
+                $plan = $(terraform show -json tfplan | ConvertFrom-Json)
+                $actions = $plan.resource_changes.change.actions
                 
-          #       Write-Host "Terraform actions : $actions"
-          #       if (($actions -contains 'create') -or ($actions -contains 'delete') -or ($actions -contains 'update'))
-          #       {
-          #         Write-Host "Terraform will perform the following actions : $actions"
-          #         Write-Host "##vso[task.setvariable variable=ANYTFCHANGES;]true"
-          #       }
-          #       else
-          #       {
-          #         Write-Host "There is no change detected in Terraform tfplan file"
-          #       }
+                Write-Host "Terraform actions : $actions"
+                if (($actions -contains 'create') -or ($actions -contains 'delete') -or ($actions -contains 'update'))
+                {
+                  Write-Host "Terraform will perform the following actions : $actions"
+                  Write-Host "##vso[task.setvariable variable=ANYTFCHANGES;]true"
+                }
+                else
+                {
+                  Write-Host "There is no change detected in Terraform tfplan file"
+                }
 
-          #       $resourceChanges = $plan.resource_changes
-          #       $add = ($resourceChanges | Where {$_.change.actions -contains "create"}).length
-          #       $change = ($resourceChanges | Where {$_.change.actions -contains "update"}).length
-          #       $remove = ($resourceChanges | Where {$_.change.actions -contains "delete"}).length
-          #       $totalChanges = $add + $change + $remove      
-          #       Write-Host "There are $totalChanges ($add to add, $change to change, $remove to remove)"
-          #     displayName: "Task - Change Drift"
-          #     targetType: "inline"
-          #     pwsh: true
-          #     workingDirectory: $(Agent.TempDirectory)/environment
-
-          # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-          #   parameters:
-          #     script: "terraform apply -input=false -auto-approve"
-          #     displayName: "Task - Apply"
-          #     targetType: "inline"
-          #     pwsh: true
-          #     workingDirectory: $(Pipeline.Workspace)/cocoy
-          #     env:
-          #       AAD_USE_MICROSOFT_GRAPH: 1
-          #       TF_IN_AUTOMATION: true
-          #       ARM_CLIENT_ID: $(sp_clientId)
-          #       ARM_CLIENT_SECRET: $(sp_clientSecret)
-          #       ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
-          #       ARM_TENANT_ID: $(sp_tenantId) 
+                $resourceChanges = $plan.resource_changes
+                $add = ($resourceChanges | Where {$_.change.actions -contains "create"}).length
+                $change = ($resourceChanges | Where {$_.change.actions -contains "update"}).length
+                $remove = ($resourceChanges | Where {$_.change.actions -contains "delete"}).length
+                $totalChanges = $add + $change + $remove      
+                Write-Host "There are $totalChanges ($add to add, $change to change, $remove to remove)"
+              displayName: "Task - Change Drift"
+              targetType: "inline"
+              pwsh: true
+              workingDirectory: $(Agent.TempDirectory)/environment
 
           - task: TerraformOutput@1
             inputs:
@@ -232,37 +213,9 @@ stages:
               pathtoPublish: '$(Agent.TempDirectory)/environment/tfplan'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
-          # - task: CopyFiles@2
-          #   inputs:
-          #     SourceFolder: '$(Agent.TempDirectory)/environment'
-          #     Contents: |
-          #       .terraform.lock.hcl
-          #       .terraform
-          #       tfplan
-          #     TargetFolder: '$(Agent.TempDirectory)/terraform-environment'
-          # - task: PublishBuildArtifacts@1
-          #   inputs:
-          #     pathtoPublish: '$(Agent.TempDirectory)/terraform-environment'
-          #     artifactName: 'TerraformPlan'
-          #     publishLocation: 'Container'
-          # - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-          #   parameters:
-          #     script: "terraform destroy -input=false -auto-approve"
-          #     displayName: "Task - Destroy"
-          #     targetType: "inline"
-          #     pwsh: true
-          #     workingDirectory: $(Pipeline.Workspace)/cocoy
-          #     env:
-          #       AAD_USE_MICROSOFT_GRAPH: 1
-          #       TF_IN_AUTOMATION: true
-          #       ARM_CLIENT_ID: $(sp_clientId)
-          #       ARM_CLIENT_SECRET: $(sp_clientSecret)
-          #       ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
-          #       ARM_TENANT_ID: $(sp_tenantId) 
 
       - job: TerraformApply1
         displayName: 'CICD - TF Apply Tenant 1'
-        condition: eq(variables.HasChange, '2')
         dependsOn: TerraformPlan1
         container: dcl-azdo-container
         steps:
@@ -287,7 +240,6 @@ stages:
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
-                AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
                 ARM_CLIENT_ID: $(sp_clientId)
                 ARM_CLIENT_SECRET: $(sp_clientSecret)
@@ -314,13 +266,12 @@ stages:
             parameters:
               script: |
                 chmod -R +x .terraform
-                terraform destroy -input=false -auto-approve -lock=true -lock-timeout=1m
+                terraform destroy -input=false -auto-approve -lock=true
               displayName: "Task - Destroy"
               targetType: "inline"
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
-                AAD_USE_MICROSOFT_GRAPH: 1
                 TF_IN_AUTOMATION: true
                 ARM_CLIENT_ID: $(sp_clientId)
                 ARM_CLIENT_SECRET: $(sp_clientSecret)
