@@ -76,7 +76,7 @@ stages:
           - task: Cache@2
             displayName: "TF cache"
             inputs:
-              key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
+              key: '"terraform | $(Agent.OS) | reponame"'
               path: '$(Agent.TempDirectory)/environment/.terraform'
 
           - task: CopyFiles@2
@@ -272,12 +272,13 @@ stages:
           - task: Cache@2
             displayName: "TF cache"
             inputs:
-              key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
+              key: '"terraform | $(Agent.OS) | reponame"'
               path: '$(Agent.TempDirectory)/environment/.terraform'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
                 chmod -R +x .terraform
+                terraform init -lockfile=readonly
                 terraform apply -input=false -auto-approve -lock=true -lock-timeout=5m
               displayName: "Task - Apply"
               targetType: "inline"
@@ -305,12 +306,13 @@ stages:
           - task: Cache@2
             displayName: "TF cache"
             inputs:
-              key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
+              key: '"terraform | $(Agent.OS) | reponame"'
               path: '$(Agent.TempDirectory)/environment/.terraform'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
                 chmod -R +x .terraform
+                terraform init -lockfile=readonly
                 terraform destroy -input=false -auto-approve -lock=true -lock-timeout=1m
               displayName: "Task - Destroy"
               targetType: "inline"
