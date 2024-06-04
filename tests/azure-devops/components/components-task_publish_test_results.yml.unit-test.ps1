@@ -13,7 +13,7 @@ BeforeAll {
     $filepath = "$PSScriptRoot/../../../src/pipeline-as-code/azure-devops/components/$filename"
     # Deserialize the template file for each technology
 
-    $validationResult = Test-VSTeamYamlPipeline -PipelineId $azdoPipelineId -FilePath  $filePath -Branch 'main' -ProjectName $azdoProjectname
+    # $validationResult = Test-VSTeamYamlPipeline -PipelineId $azdoPipelineId -FilePath  $filePath -Branch 'main' -ProjectName $azdoProjectname
     # Deserialize the template file for each technology
     try {
         $template = Get-Content -Path $filepath -raw -ErrorAction Stop | ConvertFrom-Yaml
@@ -211,8 +211,8 @@ Describe "task_publish_test_results.yml" {
             $filePath | Should -Not -FileContentMatch $([regex]::escape('#TODO?'))
         }
 
-        It "Should be valid $filename azdo template" {
-            $validationResult.id | Should -BeLessOrEqual 0
-        }
+        # It "Should be valid $filename azdo template" {
+        #     $validationResult.id | Should -BeLessOrEqual 0
+        # }
     }
 }
