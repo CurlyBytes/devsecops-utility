@@ -4,6 +4,7 @@
 # https://aka.ms/yaml
 
 trigger:
+- CurlyBytes-patch-1
 - main
 
 pool:
