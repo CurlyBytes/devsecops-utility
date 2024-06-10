@@ -83,6 +83,7 @@ stages:
 
       - job: TerraformPlan1
         displayName: 'CICD - TF Plan Tenant 1'
+        container: dcl-azdo-container
         steps: 
           - task: Cache@2
             displayName: "TF cache"
