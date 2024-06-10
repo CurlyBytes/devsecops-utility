@@ -81,220 +81,220 @@ stages:
               buildContext: '$(Build.SourcesDirectory)/src/infrastructure-as-code/terraform'
               tags: 'latest'
 
-      # - job: TerraformPlan1
-      #   displayName: 'CICD - TF Plan Tenant 1'
-      #   container: dcl-azdo-container
-      #   steps:
-      #     - task: Cache@2
-      #       displayName: "TF cache"
-      #       inputs:
-      #         key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
-      #         path: '$(Agent.TempDirectory)/environment'
-      #     - task: AzureCLI@2
-      #       displayName: 'Create/Update State File Storage'
-      #       inputs:
-      #           azureSubscription: 'terraformcli-svc'
-      #           scriptType: bash
-      #           scriptLocation: inlineScript
-      #           inlineScript: |
-      #             az group create --location $(location) --name $(terraformGroup)
-      #             az storage account create --name $(terraformStorageName) --resource-group $(terraformGroup) --location $(location) --sku $(terraformStorageSku) --min-tls-version TLS1_2 --https-only true --allow-blob-public-access false
-      #             az storage container create --name $(terraformContainerName) --account-name $(terraformStorageName)
-      #           addSpnToEnvironment: false 
-      #     - task: CopyFiles@2
-      #       inputs:
-      #         SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
-      #         Contents: '**'
-      #         TargetFolder: '$(Agent.TempDirectory)/environment'
-      #     - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-      #       parameters:
-      #         script: |
-      #           $filename = "backend.tf"
-      #           $path = "$(Agent.TempDirectory)/environment"
-      #           $pathandfile = "$path\$filename"
-      #           if ((Test-Path -Path $pathandfile) -eq $false){
-      #               New-Item -Path $path -Name $filename -ItemType "file" -Value "terraform { `r`n backend ""azurerm"" {`r`n} `r`n }"
-      #           }
-      #         displayName: "Task - Inject State Management"
-      #         targetType: "inline"
-      #         progressPreference: "silentlyContinue"
-      #         failOnStderr: true
-      #         pwsh: true
-      #         workingDirectory: $(Agent.TempDirectory)/environment
-      #         env:
-      #           TF_IN_AUTOMATION: true
-      #           ARM_CLIENT_ID: $(sp_clientId)
-      #           ARM_CLIENT_SECRET: $(sp_clientSecret)
-      #           ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
-      #           ARM_TENANT_ID: $(sp_tenantId) 
-      #     - task: file-creator@6
-      #       inputs:
-      #         filepath: '$(Agent.TempDirectory)/environment/azure.conf'
-      #         filecontent: |
-      #           resource_group_name  = "$(terraformGroup)"
-      #           storage_account_name = "$(terraformStorageName)"
-      #           container_name       = "$(terraformContainerName)"
-      #           key                  = "$(terraformStateFilename)"
-      #           access_key           = "$(tf_backend_storage_account_key)"
-      #         fileoverwrite: true
-      #         endWithNewLine: true
-      #         verbose: true
+      - job: TerraformPlan1
+        displayName: 'CICD - TF Plan Tenant 1'
+        container: dcl-azdo-container
+        steps:
+          - task: Cache@2
+            displayName: "TF cache"
+            inputs:
+              key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
+              path: '$(Agent.TempDirectory)/environment'
+          - task: AzureCLI@2
+            displayName: 'Create/Update State File Storage'
+            inputs:
+                azureSubscription: 'terraformcli-svc'
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  az group create --location $(location) --name $(terraformGroup)
+                  az storage account create --name $(terraformStorageName) --resource-group $(terraformGroup) --location $(location) --sku $(terraformStorageSku) --min-tls-version TLS1_2 --https-only true --allow-blob-public-access false
+                  az storage container create --name $(terraformContainerName) --account-name $(terraformStorageName)
+                addSpnToEnvironment: false 
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
+              Contents: '**'
+              TargetFolder: '$(Agent.TempDirectory)/environment'
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                $filename = "backend.tf"
+                $path = "$(Agent.TempDirectory)/environment"
+                $pathandfile = "$path\$filename"
+                if ((Test-Path -Path $pathandfile) -eq $false){
+                    New-Item -Path $path -Name $filename -ItemType "file" -Value "terraform { `r`n backend ""azurerm"" {`r`n} `r`n }"
+                }
+              displayName: "Task - Inject State Management"
+              targetType: "inline"
+              progressPreference: "silentlyContinue"
+              failOnStderr: true
+              pwsh: true
+              workingDirectory: $(Agent.TempDirectory)/environment
+              env:
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
+          - task: file-creator@6
+            inputs:
+              filepath: '$(Agent.TempDirectory)/environment/azure.conf'
+              filecontent: |
+                resource_group_name  = "$(terraformGroup)"
+                storage_account_name = "$(terraformStorageName)"
+                container_name       = "$(terraformContainerName)"
+                key                  = "$(terraformStateFilename)"
+                access_key           = "$(tf_backend_storage_account_key)"
+              fileoverwrite: true
+              endWithNewLine: true
+              verbose: true
 
-      #     - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-      #       parameters:
-      #         script: |
-      #           terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false  -reconfigure
-      #         displayName: "Task - Terraform Initialize"
-      #         targetType: "inline"
-      #         pwsh: true
-      #         workingDirectory: $(Agent.TempDirectory)/environment
-      #         env:
-      #           TF_IN_AUTOMATION: true
-      #           ARM_CLIENT_ID: $(sp_clientId)
-      #           ARM_CLIENT_SECRET: $(sp_clientSecret)
-      #           ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
-      #           ARM_TENANT_ID: $(sp_tenantId) 
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false  -reconfigure
+              displayName: "Task - Terraform Initialize"
+              targetType: "inline"
+              pwsh: true
+              workingDirectory: $(Agent.TempDirectory)/environment
+              env:
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
 
-      #     - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-      #       parameters:
-      #         script: |
-      #           terraform fmt -check=true -write=false -diff=true 
-      #           terraform validate 
-      #         displayName: "Task - Validate"
-      #         targetType: "inline"
-      #         progressPreference: "silentlyContinue"
-      #         failOnStderr: false
-      #         ignoreLASTEXITCODE: true
-      #         pwsh: true
-      #         workingDirectory: $(Agent.TempDirectory)/environment
-      #         env:
-      #           TF_IN_AUTOMATION: true
-      #           ARM_CLIENT_ID: $(sp_clientId)
-      #           ARM_CLIENT_SECRET: $(sp_clientSecret)
-      #           ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
-      #           ARM_TENANT_ID: $(sp_tenantId) 
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                terraform fmt -check=true -write=false -diff=true 
+                terraform validate 
+              displayName: "Task - Validate"
+              targetType: "inline"
+              progressPreference: "silentlyContinue"
+              failOnStderr: false
+              ignoreLASTEXITCODE: true
+              pwsh: true
+              workingDirectory: $(Agent.TempDirectory)/environment
+              env:
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
 
-      #     - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-      #       parameters:
-      #         script: |
-      #           terraform plan -compact-warnings -input=false -out="tfplan" -lock=false -detailed-exitcode
-      #         displayName: "Task - Plan"
-      #         targetType: "inline"
-      #         ignoreLASTEXITCODE: true
-      #         pwsh: true
-      #         workingDirectory: $(Agent.TempDirectory)/environment
-      #         env:
-      #           TF_IN_AUTOMATION: true
-      #           ARM_CLIENT_ID: $(sp_clientId)
-      #           ARM_CLIENT_SECRET: $(sp_clientSecret)
-      #           ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
-      #           ARM_TENANT_ID: $(sp_tenantId) 
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                terraform plan -compact-warnings -input=false -out="tfplan" -lock=false -detailed-exitcode
+              displayName: "Task - Plan"
+              targetType: "inline"
+              ignoreLASTEXITCODE: true
+              pwsh: true
+              workingDirectory: $(Agent.TempDirectory)/environment
+              env:
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
 
-      #     - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-      #       parameters:
-      #         script: |
-      #           terraform show -json tfplan > terraform.json
-      #           $plan = $(terraform show -json tfplan | ConvertFrom-Json)
-      #           $actions = $plan.resource_changes.change.actions
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                terraform show -json tfplan > terraform.json
+                $plan = $(terraform show -json tfplan | ConvertFrom-Json)
+                $actions = $plan.resource_changes.change.actions
                 
-      #           Write-Host "Terraform actions : $actions"
-      #           if (($actions -contains 'create') -or ($actions -contains 'delete') -or ($actions -contains 'update'))
-      #           {
-      #             Write-Host "Terraform will perform the following actions : $actions"
-      #             Write-Host "##vso[task.setvariable variable=ANYTFCHANGES;]true"
-      #           }
-      #           else
-      #           {
-      #             Write-Host "There is no change detected in Terraform tfplan file"
-      #           }
+                Write-Host "Terraform actions : $actions"
+                if (($actions -contains 'create') -or ($actions -contains 'delete') -or ($actions -contains 'update'))
+                {
+                  Write-Host "Terraform will perform the following actions : $actions"
+                  Write-Host "##vso[task.setvariable variable=ANYTFCHANGES;]true"
+                }
+                else
+                {
+                  Write-Host "There is no change detected in Terraform tfplan file"
+                }
 
-      #           $resourceChanges = $plan.resource_changes
-      #           $add = ($resourceChanges | Where {$_.change.actions -contains "create"}).length
-      #           $change = ($resourceChanges | Where {$_.change.actions -contains "update"}).length
-      #           $remove = ($resourceChanges | Where {$_.change.actions -contains "delete"}).length
-      #           $totalChanges = $add + $change + $remove      
-      #           Write-Host "There are $totalChanges ($add to add, $change to change, $remove to remove)"
-      #         displayName: "Task - Change Drift"
-      #         targetType: "inline"
-      #         pwsh: true
-      #         workingDirectory: $(Agent.TempDirectory)/environment
+                $resourceChanges = $plan.resource_changes
+                $add = ($resourceChanges | Where {$_.change.actions -contains "create"}).length
+                $change = ($resourceChanges | Where {$_.change.actions -contains "update"}).length
+                $remove = ($resourceChanges | Where {$_.change.actions -contains "delete"}).length
+                $totalChanges = $add + $change + $remove      
+                Write-Host "There are $totalChanges ($add to add, $change to change, $remove to remove)"
+              displayName: "Task - Change Drift"
+              targetType: "inline"
+              pwsh: true
+              workingDirectory: $(Agent.TempDirectory)/environment
 
-      #     - task: TerraformOutput@1
-      #       inputs:
-      #         outputFilePath: '$(Agent.TempDirectory)/environment/tfplan'
-      #         artifactName: 'sbx'
+          - task: TerraformOutput@1
+            inputs:
+              outputFilePath: '$(Agent.TempDirectory)/environment/tfplan'
+              artifactName: 'sbx'
 
-      #     # - task: PublishBuildArtifacts@1
-      #     #   inputs:
-      #     #     pathtoPublish: '$(Agent.TempDirectory)/environment/.terraform.lock.hcl'
-      #     #     artifactName: 'TerraformPlan'
-      #     #     publishLocation: 'Container'
-      #     - task: PublishBuildArtifacts@1
-      #       inputs:
-      #         pathtoPublish: '$(Agent.TempDirectory)/environment/tfplan'
-      #         artifactName: 'TerraformPlan'
-      #         publishLocation: 'Container'
+          # - task: PublishBuildArtifacts@1
+          #   inputs:
+          #     pathtoPublish: '$(Agent.TempDirectory)/environment/.terraform.lock.hcl'
+          #     artifactName: 'TerraformPlan'
+          #     publishLocation: 'Container'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(Agent.TempDirectory)/environment/tfplan'
+              artifactName: 'TerraformPlan'
+              publishLocation: 'Container'
 
-      # - job: TerraformApply1
-      #   displayName: 'CICD - TF Apply Tenant 1'
-      #   dependsOn: TerraformPlan1
-      #   container: dcl-azdo-container
-      #   steps:
-      #     - checkout: none
-      #     - task: DownloadPipelineArtifact@2
-      #       inputs:
-      #         buildType: 'current'
-      #         artifactName: 'TerraformPlan'
-      #         targetPath: '$(Agent.TempDirectory)/environment'
-      #     - task: Cache@2
-      #       displayName: "TF cache"
-      #       inputs:
-      #         key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
-      #         path: '$(Agent.TempDirectory)/environment'
-      #     - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-      #       parameters:
-      #         script: |
-      #           chmod -R +x .terraform
-      #           terraform apply -input=false -auto-approve -lock=true -lock-timeout=5m
-      #         displayName: "Task - Apply"
-      #         targetType: "inline"
-      #         pwsh: true
-      #         workingDirectory: $(Agent.TempDirectory)/environment
-      #         env:
-      #           TF_IN_AUTOMATION: true
-      #           ARM_CLIENT_ID: $(sp_clientId)
-      #           ARM_CLIENT_SECRET: $(sp_clientSecret)
-      #           ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
-      #           ARM_TENANT_ID: $(sp_tenantId) 
+      - job: TerraformApply1
+        displayName: 'CICD - TF Apply Tenant 1'
+        dependsOn: TerraformPlan1
+        container: dcl-azdo-container
+        steps:
+          - checkout: none
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              artifactName: 'TerraformPlan'
+              targetPath: '$(Agent.TempDirectory)/environment'
+          - task: Cache@2
+            displayName: "TF cache"
+            inputs:
+              key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
+              path: '$(Agent.TempDirectory)/environment'
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                chmod -R +x .terraform
+                terraform apply -input=false -auto-approve -lock=true -lock-timeout=5m
+              displayName: "Task - Apply"
+              targetType: "inline"
+              pwsh: true
+              workingDirectory: $(Agent.TempDirectory)/environment
+              env:
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId) 
 
-      # - job: TerraformDestroy
-      #   displayName: 'CICD - TF Destroy Tenant 1'
-      #   dependsOn: TerraformApply1
-      #   container: dcl-azdo-container
-      #   steps:
-      #     - checkout: none
-      #     - task: DownloadPipelineArtifact@2
-      #       inputs:
-      #         buildType: 'current'
-      #         artifactName: 'TerraformPlan'
-      #         targetPath: '$(Agent.TempDirectory)/environment'
-      #     - task: Cache@2
-      #       displayName: "TF cache"
-      #       inputs:
-      #         key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
-      #         path: '$(Agent.TempDirectory)/environment'
-      #     - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
-      #       parameters:
-      #         script: |
-      #           chmod -R +x .terraform
-      #           terraform destroy -input=false -auto-approve -lock=true
-      #         displayName: "Task - Destroy"
-      #         targetType: "inline"
-      #         pwsh: true
-      #         workingDirectory: $(Agent.TempDirectory)/environment
-      #         env:
-      #           TF_IN_AUTOMATION: true
-      #           ARM_CLIENT_ID: $(sp_clientId)
-      #           ARM_CLIENT_SECRET: $(sp_clientSecret)
-      #           ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
-      #           ARM_TENANT_ID: $(sp_tenantId)                 
+      - job: TerraformDestroy
+        displayName: 'CICD - TF Destroy Tenant 1'
+        dependsOn: TerraformApply1
+        container: dcl-azdo-container
+        steps:
+          - checkout: none
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              artifactName: 'TerraformPlan'
+              targetPath: '$(Agent.TempDirectory)/environment'
+          - task: Cache@2
+            displayName: "TF cache"
+            inputs:
+              key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
+              path: '$(Agent.TempDirectory)/environment'
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+            parameters:
+              script: |
+                chmod -R +x .terraform
+                terraform destroy -input=false -auto-approve -lock=true
+              displayName: "Task - Destroy"
+              targetType: "inline"
+              pwsh: true
+              workingDirectory: $(Agent.TempDirectory)/environment
+              env:
+                TF_IN_AUTOMATION: true
+                ARM_CLIENT_ID: $(sp_clientId)
+                ARM_CLIENT_SECRET: $(sp_clientSecret)
+                ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+                ARM_TENANT_ID: $(sp_tenantId)                 
