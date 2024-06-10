@@ -4,7 +4,6 @@
 # https://aka.ms/yaml
 
 trigger:
-- CurlyBytes-patch-1
 - main
 
 pool:
@@ -104,7 +103,7 @@ stages:
           - task: CopyFiles@2
             inputs:
               SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
-              Contents: '**'
+              Contents: '**' 
               TargetFolder: '$(Agent.TempDirectory)/environment'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
