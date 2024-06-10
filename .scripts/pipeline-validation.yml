@@ -84,7 +84,6 @@ stages:
 
       - job: TerraformPlan1
         displayName: 'CICD - TF Plan Tenant 1'
-        container: dcl-azdo-container
         steps: 
           - task: Cache@2
             displayName: "TF cache"
@@ -239,7 +238,6 @@ stages:
       - job: TerraformApply1
         displayName: 'CICD - TF Apply Tenant 1'
         dependsOn: TerraformPlan1
-        container: dcl-azdo-container
         steps:
           - checkout: none
           - task: DownloadPipelineArtifact@2
@@ -271,7 +269,6 @@ stages:
       - job: TerraformDestroy
         displayName: 'CICD - TF Destroy Tenant 1'
         dependsOn: TerraformApply1
-        container: dcl-azdo-container
         steps:
           - checkout: none
           - task: DownloadPipelineArtifact@2
