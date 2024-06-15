@@ -2,22 +2,32 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
+# Shared variables and configuration in the pipeline
+---
+parameters:
+  - name: ProjectName 
+    type: string
+    default: "projectname" 
 
 trigger:
 - main
 
 pool:
   vmImage: ubuntu-20.04
+
 resources:
   containers:
   - container: dcl-azdo-container
     image: acidglshared.azurecr.io/terraform-devsecops-utility-shared:latest
     endpoint: terraform-az-dg
+
 variables:
   - group: "eac-validation"
   - group: "tenant1"
   - name: ANYTFCHANGES
     value: false
+  - name: instrumentationKey
+    value: '$(appinsightsinstrumentationkey)'
   - name: location
     value: 'southeastasia'
   - name: terraformGroup 
@@ -30,6 +40,11 @@ variables:
     value: 'terraformstatestoragesandbox'
   - name: terraformStateFilename
     value: 'devsecops-azure-resource-group-terraform-sbx.tfstate'
+  - name: RunTask
+    value: true
+  - name: MonitoringStart
+    value: "00.00.00"
+
 stages:
   - stage: ContinousIntegration
     displayName: Continous Integration
@@ -108,6 +123,7 @@ stages:
               TargetFolder: '$(Agent.TempDirectory)/environment'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
+              instrumentationKey: $(instrumentationKey)
               script: |
                 $filename = "backend.tf"
                 $path = "$(Agent.TempDirectory)/environment"
@@ -142,6 +158,7 @@ stages:
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
+              instrumentationKey: $(instrumentationKey)
               script: |
                 terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false -reconfigure
               displayName: "Task - Terraform Initialize"
@@ -157,6 +174,7 @@ stages:
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
+              instrumentationKey: $(instrumentationKey)
               script: |
                 terraform fmt -check=true -write=false -diff=true 
                 terraform validate 
@@ -176,6 +194,7 @@ stages:
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
+              instrumentationKey: $(instrumentationKey)
               script: |
                 terraform plan -compact-warnings -input=false -out="tfplan" -lock=false
               displayName: "Task - Plan"
@@ -191,6 +210,7 @@ stages:
 
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
+              instrumentationKey: $(instrumentationKey)
               script: |
                 terraform show -json tfplan > terraform.json
                 $plan = $(terraform show -json tfplan | ConvertFrom-Json)
@@ -252,6 +272,7 @@ stages:
               path: '$(Agent.TempDirectory)/environment'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
+              instrumentationKey: $(instrumentationKey)
               script: |
                 chmod -R +x .terraform
                 terraform apply -input=false -auto-approve -lock=true -lock-timeout=5m
@@ -284,6 +305,7 @@ stages:
               path: '$(Agent.TempDirectory)/environment'
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
+              instrumentationKey: $(instrumentationKey)
               script: |
                 chmod -R +x .terraform
                 terraform destroy -input=false -auto-approve -lock=true
