@@ -18,8 +18,8 @@ provider "azurerm" {
 }
 
 module "aztf_rnd_rg" {
-  # source                   = "../../components/azure-resource-group" #direct directory
-  source                   = "../../../terraform_files/components/azure-resource-group" #terrafomr image
+  source                   = "../../components/azure-resource-group" #direct directory
+  # source                   = "../../../terraform_files/components/azure-resource-group" #terrafomr image
   PROJECT_NAME             = "devsecops-utility"
   PROJECT_ENVIRONMENT_NAME = "Sandbox"
 
