@@ -97,25 +97,23 @@ stages:
 
       - job: TerraformPlan1
         displayName: 'CICD - TF Plan Tenant 1'
-        dependsOn: BareMinimum
-        # container: dcl-azdo-container
         steps: 
           - task: Cache@2
             displayName: "TF cache"
             inputs:
               key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
               path: '$(Agent.TempDirectory)/environment'
-          # - task: AzureCLI@2
-          #   displayName: 'Create/Update State File Storage'
-          #   inputs:
-          #       azureSubscription: 'terraformcli-svc'
-          #       scriptType: bash
-          #       scriptLocation: inlineScript
-          #       inlineScript: |
-          #         az group create --location $(location) --name $(terraformGroup)
-          #         az storage account create --name $(terraformStorageName) --resource-group $(terraformGroup) --location $(location) --sku $(terraformStorageSku) --min-tls-version TLS1_2 --https-only true --allow-blob-public-access false
-          #         az storage container create --name $(terraformContainerName) --account-name $(terraformStorageName)
-          #       addSpnToEnvironment: false 
+          - task: AzureCLI@2
+            displayName: 'Create/Update State File Storage'
+            inputs:
+                azureSubscription: 'terraformcli-svc'
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  az group create --location $(location) --name $(terraformGroup)
+                  az storage account create --name $(terraformStorageName) --resource-group $(terraformGroup) --location $(location) --sku $(terraformStorageSku) --min-tls-version TLS1_2 --https-only true --allow-blob-public-access false
+                  az storage container create --name $(terraformContainerName) --account-name $(terraformStorageName)
+                addSpnToEnvironment: false 
           - task: CopyFiles@2
             inputs:
               SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
@@ -156,13 +154,13 @@ stages:
               endWithNewLine: true
               verbose: true
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
                 terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false -reconfigure
               displayName: "Task - Terraform Initialize"
-              targetType: "inline"
+              target: "dcl-azdo-container"
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
@@ -172,14 +170,14 @@ stages:
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
                 terraform fmt -check=true -write=false -diff=true 
                 terraform validate 
               displayName: "Task - Validate"
-              targetType: "inline"
+              target: "dcl-azdo-container"
               progressPreference: "silentlyContinue"
               failOnStderr: false
               ignoreLASTEXITCODE: true
@@ -192,13 +190,13 @@ stages:
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
                 terraform plan -compact-warnings -input=false -out="tfplan" -lock=false
               displayName: "Task - Plan"
-              targetType: "inline"
+              target: "dcl-azdo-container"
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
@@ -270,14 +268,14 @@ stages:
             inputs:
               key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
               path: '$(Agent.TempDirectory)/environment'
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
                 chmod -R +x .terraform
                 terraform apply -input=false -auto-approve -lock=true -lock-timeout=5m
               displayName: "Task - Apply"
-              targetType: "inline"
+              target: "dcl-azdo-container"
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
@@ -303,14 +301,14 @@ stages:
             inputs:
               key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
               path: '$(Agent.TempDirectory)/environment'
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
                 chmod -R +x .terraform
                 terraform destroy -input=false -auto-approve -lock=true
               displayName: "Task - Destroy"
-              targetType: "inline"
+              target: "dcl-azdo-container"
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
