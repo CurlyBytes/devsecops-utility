@@ -51,7 +51,6 @@ stages:
     jobs:
       - job: BareMinimum
         displayName: 'CICD - Unit Test'
-        container: dcl-azdo-container
         steps:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
