@@ -236,10 +236,10 @@ stages:
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
 
-          - task: TerraformOutput@1
-            inputs:
-              outputFilePath: '$(Agent.TempDirectory)/environment/tfplan'
-              artifactName: 'sbx'
+          # - task: TerraformOutput@1
+          #   inputs:
+          #     outputFilePath: '$(Agent.TempDirectory)/environment/tfplan'
+          #     artifactName: 'sbx'
 
           # - task: PublishBuildArtifacts@1
           #   inputs:
