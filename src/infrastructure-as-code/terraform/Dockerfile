@@ -72,9 +72,9 @@ RUN ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
 COPY --from=node_base ["${NODE_HOME}", "${NODE_HOME}"]
  
 # Copy over src(all terraform components/modules)
-RUN mkdir terraform
+RUN mkdir terraform_files
 RUN mkdir code
-COPY . terraform
+COPY . terraform_files
 
 ENV APK_DEV "gcc libffi-dev musl-dev openssl-dev python3-dev pipx make"
 ENV APK_ADD "bash sudo shadow curl py3-pip graphviz git jq"
