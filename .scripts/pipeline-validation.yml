@@ -90,17 +90,17 @@ stages:
             inputs:
               key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
               path: '$(Agent.TempDirectory)/environment'
-          # - task: AzureCLI@2
-          #   displayName: 'Create/Update State File Storage'
-          #   inputs:
-          #       azureSubscription: 'terraformcli-svc'
-          #       scriptType: bash
-          #       scriptLocation: inlineScript
-          #       inlineScript: |
-          #         az group create --location $(location) --name $(terraformGroup)
-          #         az storage account create --name $(terraformStorageName) --resource-group $(terraformGroup) --location $(location) --sku $(terraformStorageSku) --min-tls-version TLS1_2 --https-only true --allow-blob-public-access false
-          #         az storage container create --name $(terraformContainerName) --account-name $(terraformStorageName)
-          #       addSpnToEnvironment: false 
+          - task: AzureCLI@2
+            displayName: 'Create/Update State File Storage'
+            inputs:
+                azureSubscription: 'terraformcli-svc'
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  az group create --location $(location) --name $(terraformGroup)
+                  az storage account create --name $(terraformStorageName) --resource-group $(terraformGroup) --location $(location) --sku $(terraformStorageSku) --min-tls-version TLS1_2 --https-only true --allow-blob-public-access false
+                  az storage container create --name $(terraformContainerName) --account-name $(terraformStorageName)
+                addSpnToEnvironment: false 
           - task: CopyFiles@2
             inputs:
               SourceFolder: '$(System.DefaultWorkingDirectory)/src/infrastructure-as-code/terraform/samples/az-standard-rg'
@@ -143,7 +143,7 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false  -reconfigure
+                terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false -reconfigure
               displayName: "Task - Terraform Initialize"
               targetType: "inline"
               pwsh: true
