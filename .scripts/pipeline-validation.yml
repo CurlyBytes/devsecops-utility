@@ -51,7 +51,7 @@ stages:
     jobs:
       - job: BareMinimum
         displayName: 'CICD - Unit Test'
-        # container: dcl-azdo-container
+        container: dcl-azdo-container
         steps:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
@@ -98,7 +98,8 @@ stages:
 
       - job: TerraformPlan1
         displayName: 'CICD - TF Plan Tenant 1'
-        # container: dcl-azdo-container
+        dependsOn: BareMinimum
+        container: dcl-azdo-container
         steps: 
           - task: Cache@2
             displayName: "TF cache"
@@ -256,7 +257,7 @@ stages:
 
       - job: TerraformApply1
         displayName: 'CICD - TF Apply Tenant 1'
-        # container: dcl-azdo-container
+        container: dcl-azdo-container
         dependsOn: TerraformPlan1
         steps:
           - checkout: none
@@ -289,7 +290,7 @@ stages:
 
       - job: TerraformDestroy
         displayName: 'CICD - TF Destroy Tenant 1'
-        # container: dcl-azdo-container
+        container: dcl-azdo-container
         dependsOn: TerraformApply1
         steps:
           - checkout: none
