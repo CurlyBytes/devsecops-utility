@@ -206,7 +206,7 @@ stages:
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
@@ -232,7 +232,7 @@ stages:
                 $totalChanges = $add + $change + $remove      
                 Write-Host "There are $totalChanges ($add to add, $change to change, $remove to remove)"
               displayName: "Task - Change Drift"
-              targetType: "inline"
+              target: "dcl-azdo-container"
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
 
