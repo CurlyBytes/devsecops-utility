@@ -16,8 +16,8 @@ resources:
 variables:
   - group: "eac-validation"
   - group: "tenant1"
-  - name: HasChange
-    value: '2'
+  - name: ANYTFCHANGES
+    value: false
   - name: location
     value: 'southeastasia'
   - name: terraformGroup 
@@ -177,10 +177,9 @@ stages:
           - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               script: |
-                terraform plan -compact-warnings -input=false -out="tfplan" -lock=false -detailed-exitcode
+                terraform plan -compact-warnings -input=false -out="tfplan" -lock=false
               displayName: "Task - Plan"
               targetType: "inline"
-              ignoreLASTEXITCODE: true
               pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
