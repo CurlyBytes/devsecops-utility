@@ -243,7 +243,7 @@ stages:
           #     publishLocation: 'Container'
           - task: PublishBuildArtifacts@1
             inputs:
-              pathtoPublish: '$(Agent.TempDirectory)/environment/tfplan'
+              pathtoPublish: '$(Agent.TempDirectory)/environment'
               artifactName: 'TerraformPlan'
               publishLocation: 'Container'
 
