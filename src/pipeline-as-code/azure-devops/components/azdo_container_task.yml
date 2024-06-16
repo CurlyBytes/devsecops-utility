@@ -59,6 +59,10 @@ parameters:
     displayName: "Still continue the upon script command on exit"
     type: boolean
     default: false
+  - name: workingDirectory
+    displayName: "File location of powershell execution"
+    type: string
+    default: "$(System.DefaultWorkingDirectory)"
   - name: target
     displayName: "Powershell script to be run"
     type: string
