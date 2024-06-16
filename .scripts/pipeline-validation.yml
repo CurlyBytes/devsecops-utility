@@ -177,7 +177,6 @@ stages:
                 terraform validate 
               displayName: "Task - Validate"
               target: "dcl-azdo-container"
-              progressPreference: "silentlyContinue"
               failOnStderr: false
               ignoreLASTEXITCODE: true
               workingDirectory: $(Agent.TempDirectory)/environment
