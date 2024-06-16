@@ -97,7 +97,6 @@ stages:
 
       - job: TerraformPlan1
         displayName: 'CICD - TF Plan Tenant 1'
-        container: dcl-azdo-container
         steps: 
           - task: Cache@2
             displayName: "TF cache"
@@ -242,11 +241,15 @@ stages:
           #     pathtoPublish: '$(Agent.TempDirectory)/environment/.terraform.lock.hcl'
           #     artifactName: 'TerraformPlan'
           #     publishLocation: 'Container'
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathtoPublish: '$(Agent.TempDirectory)/environment'
-              artifactName: 'TerraformPlan'
-              publishLocation: 'Container'
+          - publish: $(Agent.TempDirectory)/environment/tfplan
+            artifact: TerraformPlan
+            displayName: Publish TF File
+
+          # - task: PublishBuildArtifacts@1
+          #   inputs:
+          #     pathtoPublish: '$(Agent.TempDirectory)/environment'
+          #     artifactName: 'TerraformPlan'
+          #     publishLocation: 'Container'
 
       - job: TerraformApply1
         displayName: 'CICD - TF Apply Tenant 1'
