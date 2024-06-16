@@ -68,6 +68,14 @@ parameters:
     displayName: "Number of times for retry count upon error"
     type: string
     default: "host"
+  - name: timeoutInMinutes
+    displayName: "Maximum timeout of Steps processing time"
+    type: string
+    default: "25"
+  - name: retryCountOnTaskFailure
+    displayName: "Number of times for retry count upon error"
+    type: string
+    default: "1"
 
 steps:
   - template: azdo_container_step.yml
