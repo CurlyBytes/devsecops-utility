@@ -50,6 +50,7 @@ Describe "azdo_container_task.yml" {
                 @{ parameter = @{ name = "retryCountOnTaskFailure"; type = "string" }},
                 @{ parameter = @{ name = "inputs"; type = "object" }},
                 @{ parameter = @{ name = "env"; type = "object" }},
+                @{ parameter = @{ name = "script"; type = "string" }},
                 @{ parameter = @{ name = "errorActionPreference"; type = "string" }},
                 @{ parameter = @{ name = "workingDirectory"; type = "string" }},
                 @{ parameter = @{ name = "failOnStderr"; type = "boolean" }},

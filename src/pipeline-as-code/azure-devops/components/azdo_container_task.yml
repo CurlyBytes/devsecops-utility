@@ -44,6 +44,10 @@ parameters:
     displayName: "Environment variable holder"
     type: object
     default: []
+  - name: script
+    displayName: "Powershell raw command"
+    type: string
+    default: echo "Hello World"
   - name: errorActionPreference
     displayName: "Powershell Action whenever error occurs"
     type: string
