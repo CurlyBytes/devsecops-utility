@@ -154,7 +154,7 @@ stages:
               endWithNewLine: true
               verbose: true
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
@@ -170,7 +170,7 @@ stages:
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
@@ -190,7 +190,7 @@ stages:
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
@@ -206,7 +206,7 @@ stages:
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
@@ -267,7 +267,7 @@ stages:
             inputs:
               key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
               path: '$(Agent.TempDirectory)/environment'
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
@@ -299,7 +299,7 @@ stages:
             inputs:
               key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
               path: '$(Agent.TempDirectory)/environment'
-          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |

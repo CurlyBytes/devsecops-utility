@@ -1,4 +1,4 @@
-# A Powershell Task
+# A Native Devops Powershell Task
 ---
 parameters:
   - name: yamlPipelineConfiguration
@@ -33,25 +33,10 @@ parameters:
     displayName: "Switch to continue the task even it is failure"
     type: boolean
     default: false
-  - name: targetType
-    displayName: "Powershell Type execution"
-    type: string
-    default: "inline"
-    values:
-      - inline
-      - filepath
   - name: script
     displayName: "Powershell raw command"
     type: string
     default: echo "Hello World"
-  - name: filePath
-    displayName: "Powershell file path location"
-    type: string
-    default: "steps.ps1"
-  - name: arguments
-    displayName: "Parameter for powershell script files"
-    type: string
-    default: "-parametername helloworld -parametertype string"
   - name: workingDirectory
     displayName: "File location of powershell execution"
     type: string
@@ -63,61 +48,51 @@ parameters:
     values:
       - default
       - silentlyContinue
-  - name: progressPreference
-    displayName: "Tracking of Powershell Activity and Queueing"
-    type: string
-    default: "default"
-    values:
-      - default
-      - silentlyContinue
   - name: failOnStderr
     displayName: "Is halt and error upon a failure on the script occur"
-    type: boolean
-    default: true
-  - name: showWarnings
-    displayName: "Is display Error and warnings in consoler"
     type: boolean
     default: true
   - name: ignoreLASTEXITCODE
     displayName: "Still continue the upon script command on exit"
     type: boolean
     default: false
-  - name: pwsh
-    displayName: "Can support script on Linux"
-    type: boolean
-    default: true
   - name: env
     displayName: "Environment variable holder in Powershell"
     type: object
     default: []
-  - name: timeoutInMinutes
-    displayName: "Maximum timeout of Steps processing time"
-    type: string
-    default: "25"
-  - name: retryCountOnTaskFailure
-    displayName: "Number of times for retry count upon error"
-    type: string
-    default: "1"
+  - name: enabled
+    displayName: "Switch to enable or disable task processing"
+    type: boolean
+    default: true
   - name: target
     displayName: "Number of times for retry count upon error"
     type: string
     default: "host"
+
 steps:
-  - powershell: ${{ parameters.script }} # Required as first property. Inline PowerShell script.
-    errorActionPreference: "${{ parameters.errorActionPreference }}" # Unless otherwise specified, the error action preference defaults to the value stop. See the following section for more information.
-    failOnStderr: ${{ parameters.failOnStderr }} # Fail the task if output is sent to Stderr?
-    ignoreLASTEXITCODE: ${{ parameters.ignoreLASTEXITCODE }} # Check the final exit code of the script to determine whether the step succeeded?
-    workingDirectory: "${{ parameters.workingDirectory }}" # Start the script with this working directory.
-    condition: ${{ parameters.condition }} # Evaluate this condition expression to determine whether to run this task.
-    continueOnError: ${{ parameters.continueOnError }} # Continue running even on failure?
-    displayName: "${{ parameters.displayName }}" # Human-readable name for the task.
-    target: "${{ parameters.target }}" # Environment in which to run this task.
-    enabled: true # Run this task when the job runs?
-    ${{ if ne(convertToJson(parameters.env), '[]') }}:
-      env:
-        ${{ parameters.env }}
-    ${{ if ne(parameters.name, '') }}:
-      name: ${{ parameters.name }}
-    timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
-    retryCountOnTaskFailure: ${{ parameters.retryCountOnTaskFailure }}
-    
+  - template: azdo_container_step.yml
+    parameters:
+      yamlPipelineConfiguration: ${{ parameters.yamlPipelineConfiguration }}
+      projectName: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.projectName, parameters.projectName) }}"
+      instrumentationKey: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.instrumentationKey, parameters.instrumentationKey) }}"
+      yamlFullFilePath: "src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml"
+      powershellScriptFullFilePath: "${{ coalesce( parameters.yamlPipelineConfiguration.baseline.powershellScriptFullFilePath, parameters.powershellScriptFullFilePath) }}"
+      objectTask:
+        task: "powershell"
+        errorActionPreference: "${{ parameters.errorActionPreference }}" # Unless otherwise specified, the error action preference defaults to the value stop. See the following section for more information.
+        failOnStderr: ${{ parameters.failOnStderr }} # Fail the task if output is sent to Stderr?
+        ignoreLASTEXITCODE: ${{ parameters.ignoreLASTEXITCODE }} # Check the final exit code of the script to determine whether the step succeeded?
+        workingDirectory: "${{ parameters.workingDirectory }}" # Start the script with this working directory.
+        condition: ${{ parameters.condition }} # Evaluate this condition expression to determine whether to run this task.
+        continueOnError: ${{ parameters.continueOnError }} # Continue running even on failure?
+        displayName: "${{ parameters.displayName }}" # Human-readable name for the task.
+        target: "${{ parameters.target }}" # Environment in which to run this task.
+        enabled: ${{ parameters.enabled }}  # Run this task when the job runs?
+        ${{ if ne(convertToJson(parameters.env), '[]') }}:
+          env:
+            ${{ parameters.env }}
+        ${{ if ne(parameters.name, '') }}:
+          name: ${{ parameters.name }}
+        timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
+        retryCountOnTaskFailure: ${{ parameters.retryCountOnTaskFailure }}
+        
