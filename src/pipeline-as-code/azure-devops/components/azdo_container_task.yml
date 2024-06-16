@@ -49,7 +49,7 @@ parameters:
     type: string
     default: "host"
 steps:
-  - ${{ if eq( parameters.task , "powershell" )}}:
+  - ${{ if eq( parameters.task , 'powershell' )}}:
     - powershell: ${{ parameters.script }} 
       errorActionPreference: "${{ parameters.errorActionPreference }}" 
       failOnStderr: ${{ parameters.failOnStderr }}
