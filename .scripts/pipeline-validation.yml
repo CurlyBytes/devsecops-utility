@@ -244,6 +244,7 @@ stages:
           - publish: $(Agent.TempDirectory)/environment/tfplan
             artifact: TerraformPlan
             displayName: Publish TF File
+            target: "dcl-azdo-container" 
 
           # - task: PublishBuildArtifacts@1
           #   inputs:
