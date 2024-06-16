@@ -44,19 +44,41 @@ parameters:
     displayName: "Environment variable holder"
     type: object
     default: []
-
+  - name: target
+    displayName: "Powershell script to be run"
+    type: string
+    default: "host"
 steps:
-  - task: ${{ parameters.task }}
-    ${{ if ne(parameters.name, '') }}:
-      name: ${{ parameters.name }}
-    displayName: ${{ parameters.displayName }}
-    condition: ${{ parameters.condition }}
-    continueOnError: ${{ parameters.continueOnError }}
-    enabled: ${{ parameters.enabled }}
-    timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
-    retryCountOnTaskFailure: ${{ parameters.retryCountOnTaskFailure }}
-    inputs:
-      ${{ parameters.inputs }}
-    ${{ if ne(convertToJson(parameters.env), '[]') }}:
-      env:
-        ${{ parameters.env }}
+  - ${{ if eq( parameters.task , "powershell" )}}:
+    - powershell: ${{ parameters.script }} 
+      errorActionPreference: "${{ parameters.errorActionPreference }}" 
+      failOnStderr: ${{ parameters.failOnStderr }}
+      ignoreLASTEXITCODE: ${{ parameters.ignoreLASTEXITCODE }} 
+      workingDirectory: "${{ parameters.workingDirectory }}"
+      condition: ${{ parameters.condition }} 
+      continueOnError: ${{ parameters.continueOnError }}
+      displayName: "${{ parameters.displayName }}"
+      target: "${{ parameters.target }}" 
+      enabled: ${{ parameters.enabled }} 
+      ${{ if ne(convertToJson(parameters.env), '[]') }}:
+        env:
+          ${{ parameters.env }}
+      ${{ if ne(parameters.name, '') }}:
+        name: ${{ parameters.name }}
+      timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
+      retryCountOnTaskFailure: ${{ parameters.retryCountOnTaskFailure }}
+  - ${{ else }}:
+    - task: ${{ parameters.task }}
+      ${{ if ne(parameters.name, '') }}:
+        name: ${{ parameters.name }}
+      displayName: ${{ parameters.displayName }}
+      condition: ${{ parameters.condition }}
+      continueOnError: ${{ parameters.continueOnError }}
+      enabled: ${{ parameters.enabled }}
+      timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
+      retryCountOnTaskFailure: ${{ parameters.retryCountOnTaskFailure }}
+      inputs:
+        ${{ parameters.inputs }}
+      ${{ if ne(convertToJson(parameters.env), '[]') }}:
+        env:
+          ${{ parameters.env }}

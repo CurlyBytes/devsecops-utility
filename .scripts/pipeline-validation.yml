@@ -154,7 +154,7 @@ stages:
               endWithNewLine: true
               verbose: true
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
@@ -170,7 +170,7 @@ stages:
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
@@ -190,7 +190,7 @@ stages:
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
@@ -206,7 +206,7 @@ stages:
                 ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
                 ARM_TENANT_ID: $(sp_tenantId) 
 
-          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
@@ -254,7 +254,6 @@ stages:
 
       - job: TerraformApply1
         displayName: 'CICD - TF Apply Tenant 1'
-        # container: dcl-azdo-container
         dependsOn: TerraformPlan1
         steps:
           - checkout: none
@@ -268,7 +267,7 @@ stages:
             inputs:
               key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
               path: '$(Agent.TempDirectory)/environment'
-          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
@@ -287,7 +286,6 @@ stages:
 
       - job: TerraformDestroy
         displayName: 'CICD - TF Destroy Tenant 1'
-        #container: dcl-azdo-container
         dependsOn: TerraformApply1
         steps:
           - checkout: none
@@ -301,7 +299,7 @@ stages:
             inputs:
               key: '"terraform | $(Agent.OS) | "$(Build.BuildNumber)" | $(Build.SourceVersion)"'
               path: '$(Agent.TempDirectory)/environment'
-          - template: ../src/pipeline-as-code/azure-devops/components/task_azdopowershell.yml
+          - template: ../src/pipeline-as-code/azure-devops/components/task_powershell.yml
             parameters:
               instrumentationKey: $(instrumentationKey)
               script: |
