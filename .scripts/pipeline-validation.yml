@@ -161,7 +161,6 @@ stages:
                 terraform init -backend-config='$(Agent.TempDirectory)/environment/azure.conf' -input=false -reconfigure
               displayName: "Task - Terraform Initialize"
               target: "dcl-azdo-container"
-              pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
                 TF_IN_AUTOMATION: true
@@ -181,7 +180,6 @@ stages:
               progressPreference: "silentlyContinue"
               failOnStderr: false
               ignoreLASTEXITCODE: true
-              pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
                 TF_IN_AUTOMATION: true
@@ -197,7 +195,6 @@ stages:
                 terraform plan -compact-warnings -input=false -out="tfplan" -lock=false
               displayName: "Task - Plan"
               target: "dcl-azdo-container"
-              pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
                 TF_IN_AUTOMATION: true
@@ -233,7 +230,6 @@ stages:
                 Write-Host "There are $totalChanges ($add to add, $change to change, $remove to remove)"
               displayName: "Task - Change Drift"
               target: "dcl-azdo-container"
-              pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
 
           # - task: TerraformOutput@1
@@ -275,7 +271,6 @@ stages:
                 terraform apply -input=false -auto-approve -lock=true -lock-timeout=5m
               displayName: "Task - Apply"
               target: "dcl-azdo-container"
-              pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
                 TF_IN_AUTOMATION: true
@@ -307,7 +302,6 @@ stages:
                 terraform destroy -input=false -auto-approve -lock=true
               displayName: "Task - Destroy"
               target: "dcl-azdo-container"
-              pwsh: true
               workingDirectory: $(Agent.TempDirectory)/environment
               env:
                 TF_IN_AUTOMATION: true
