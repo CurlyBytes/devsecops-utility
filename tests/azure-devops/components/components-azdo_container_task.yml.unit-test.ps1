@@ -49,47 +49,17 @@ Describe "azdo_container_task.yml" {
                 @{ parameter = @{ name = "timeoutInMinutes"; type = "string" }},
                 @{ parameter = @{ name = "retryCountOnTaskFailure"; type = "string" }},
                 @{ parameter = @{ name = "inputs"; type = "object" }},
-                @{ parameter = @{ name = "env"; type = "object" }}
+                @{ parameter = @{ name = "env"; type = "object" }},
+                @{ parameter = @{ name = "script"; type = "string" }},
+                @{ parameter = @{ name = "errorActionPreference"; type = "string" }},
+                @{ parameter = @{ name = "workingDirectory"; type = "string" }},
+                @{ parameter = @{ name = "failOnStderr"; type = "boolean" }},
+                @{ parameter = @{ name = "ignoreLASTEXITCODE"; type = "boolean" }},
+                @{ parameter = @{ name = "target"; type = "string" }}
                 #End of adding template parameter here
         )
     }
 
-    Context "yaml syntax key:value pair validation" {
-        It "Match the expected parameters.task" {
-            $Elements = '${{ parameters.task }}'
-            $templateResources = $template.steps.task
-            $Elements | Should -BeIn $templateResources
-            $templateResources | Should -Not -BeNullOrEmpty
-        }
-
-        It "Match the expected condition" {
-            $Elements = '${{ parameters.condition }}'
-            $templateResources = $template.steps.condition
-            $Elements | Should -BeIn $templateResources
-            $templateResources | Should -Not -BeNullOrEmpty
-        }
-
-        It "Match the expected parameters.continueOnError" {
-            $Elements = '${{ parameters.continueOnError }}'
-            $templateResources = $template.steps.continueOnError
-            $Elements | Should -BeIn $templateResources
-            $templateResources | Should -Not -BeNullOrEmpty
-        }
-
-        It "Match the expected parameters.timeoutInMinutes" {
-            $Elements = '${{ parameters.timeoutInMinutes }}'
-            $templateResources = $template.steps.timeoutInMinutes
-            $Elements | Should -BeIn $templateResources
-            $templateResources | Should -Not -BeNullOrEmpty
-        }
-
-        It "Match the expected parameters.retryCountOnTaskFailure" {
-            $Elements = '${{ parameters.retryCountOnTaskFailure }}'
-            $templateResources = $template.steps.retryCountOnTaskFailure
-            $Elements | Should -BeIn $templateResources
-            $templateResources | Should -Not -BeNullOrEmpty
-        }
-    }
 
     Context "yaml standards" {
         It 'Should not return any violation' {

@@ -27,6 +27,337 @@ parameters:
     default: []
 
 steps:
+  - task: PowerShell@2
+    displayName: Task - AI Log Steps(Always)
+    condition: |
+      and(
+        always(),
+        eq( variables.RunTask , true)
+      )
+    inputs:
+      targetType: 'inline'
+      script: |
+        $time1 = Get-Date -Format "o"
+        Write-Host "##vso[task.setvariable variable=MonitoringStart;]$time1"
+      showWarnings: true
+      ignoreLASTEXITCODE: true
+      pwsh: true
+
+  - ${{ if eq( parameters.yamlPipelineConfiguration.baseline.enableDebugMode , true )}}:
+    - ${{ each individualParameter in parameters }}:
+      - task: PowerShell@2
+        displayName: Debug - Parameter(${{ individualParameter.key }})
+        condition: |
+          and(
+            succeeded(),
+            eq( variables.RunTask , true)
+          )
+        inputs:
+          targetType: 'inline'
+          script: |
+            Write-Host "Parameter Key: ${{ individualParameter.key }}"
+            Write-Host "Parameter Value: ${{ convertToJson( join(';', individualParameter.value )) }}"
+          showWarnings: true
+          ignoreLASTEXITCODE: true
+          pwsh: true
+      - ${{ if and(eq(individualParameter.key, 'objectTask' ), ne(convertToJson(individualParameter.value), '[]' )) }}:
+        - ${{ each stepRecord in parameters.objectTask }}:
+          - task: PowerShell@2
+            displayName:  Debug - objectTask(${{ stepRecord.key }})
+            condition: |
+              and(
+                succeeded(),
+                eq( variables.RunTask , true)
+              )
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "objectTask Key: ${{ stepRecord.key }}"
+                Write-Host "objectTask Value" + ${{ convertToJson( join(';', stepRecord.value )) }}
+              showWarnings: true
+              ignoreLASTEXITCODE: true
+              pwsh: true
+
+      - ${{ if and(eq(individualParameter.key, 'yamlPipelineConfiguration' ), ne(convertToJson(individualParameter.value), '[]' )) }}:
+        - ${{ each stepRecord in parameters.yamlPipelineConfiguration }}:
+          - task: PowerShell@2
+            displayName:  Debug - yamlPipelineConfiguration(${{ stepRecord.key }})
+            condition: |
+              and(
+                succeeded(),
+                eq( variables.RunTask , true)
+              )
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "yamlPipelineConfiguration Key: ${{ stepRecord.key }}"
+                Write-Host "yamlPipelineConfiguration Value" + ${{ convertToJson( join(';', stepRecord.value )) }}
+              showWarnings: true
+              ignoreLASTEXITCODE: true
+              pwsh: true
+
   - template: azdo_container_task.yml
     parameters:
       ${{ parameters.objectTask }}
+
+  - task: PowerShell@2
+    displayName: Task - AI Log Steps(Success)
+    condition: |
+      and(
+        succeeded(),
+        eq( variables.RunTask , true)
+      )
+    inputs:
+      targetType: 'inline'
+      script: |
+        $endtime = "$(MonitoringStart)"
+        $time2 = Get-Date -Format "o"
+        $duration = (Get-Date $time2).Subtract((Get-Date $endtime))
+        $optionsHashtable = @{
+          "Organization" = "$(System.CollectionUri)"
+          "ProjectName" = "${{ parameters.projectName }}"
+          "PipelineName" = "$(Build.DefinitionName)"
+          "JobName" = "$(Agent.JobName)"
+          "Requested" = "$(Build.RequestedForId)"
+          "RepositoryName" = "$(Build.Repository.Name)"
+          "BranchName" = "$(Build.SourceBranch)"
+          "CommitHash" = "$(Build.SourceVersion)"
+          "Reason" = "$(Build.Reason)"
+          "AgentId" = "$(Agent.Id)"
+          "AgentMachineName" = "$(Agent.MachineName)"
+          "OS" = "$(Agent.OS)"
+          "OSArchitecture" = "$(Agent.OSArchitecture)"
+          "SystemHostType" = "$(System.HostType)"
+        }
+
+        function Log-Message {
+          Param(
+              [String]$InstrumentationKey,
+              [String]$DisplayName,
+              [String]$FullFilePath,
+              [System.DateTimeOffset]$Started,
+              [System.TimeSpan]$Duration,   
+              [bool]$Success         = $True, 
+              [bool]$DebugMode         = $False, 
+              [String]$TraceType      = "Information",
+              [HashTable]$Properties = @{},
+              [HashTable]$Metrics    = @{})
+          #Declaration of file    
+          $urlSegments = $FullFilePath -split '/'
+
+          # setup telemetry client ("*ApplicationInsights.dll" DLL must be present)
+          $telemetryClient  = New-Object -TypeName Microsoft.ApplicationInsights.TelemetryClient
+          $telemetryClient.InstrumentationKey     = $InstrumentationKey
+
+          # initialize context information
+          $OperationId = "$($env:BUILD_BUILDID)" #(New-Guid).ToString("N")
+          $TelemetryClient.Context.Session.Id     = "$($env:BUILD_BUILDID)"
+          $TelemetryClient.Context.User.Id        = "$($env:BUILD_REQUESTEDFORID)"  #"$($env:AGENT_MACHINENAME)-xx-$($env:BUILD_BUILDID)"
+          $TelemetryClient.Context.Device.Id       = "$($env:AGENT_MACHINENAME)"   #"$($env:AGENT_MACHINENAME)-xx-$($env:BUILD_BUILDID)"
+          $telemetryClient.Context.Operation.Id   = $OperationId
+          $telemetryClient.Context.Operation.ParentId = "$($env:BUILD_BUILDID)"
+          $telemetryClient.Context.Operation.SyntheticSource  = "$($env:SYSTEM_COLLECTIONURI)"
+          $telemetryClient.Context.Operation.Name = $DisplayName
+          $telemetryClient.Context.Component.Version = "$($env:BUILD_BUILDNUMBER)"
+          $telemetryClient.Context.Device.OperatingSystem = "$($env:AGENT_OS)"
+          $telemetryClient.Context.Device.Type = "$($env:AGENT_NAME)" 
+          $telemetryClient.Context.Cloud.RoleInstance = "$($env:SYSTEM_DEFINITIONID)" 
+          $telemetryClient.Context.Cloud.RoleName = "$($env:BUILD_REPOSITORY_NAME)" 
+
+          $telemetryClient.TrackEvent($DisplayName)
+
+          # setup request telemetry information
+          $request = New-Object -TypeName Microsoft.ApplicationInsights.DataContracts.RequestTelemetry
+          $request.Name       = $DisplayName
+          $request.Timestamp  = $Started
+          $request.Duration   = $Duration
+          $request.Timestamp  = $Started
+          $request.Url    = $FullFilePath
+          $request.Success    = $Success
+          $Properties.Keys | ForEach-Object { $request.Properties[$_] = $Properties[$_] }
+          $Metrics.Keys    | ForEach-Object { $request.Metrics[$_]    = $Metrics[$_] }
+          $telemetryClient.Track($request)
+
+          $metric = New-Object -TypeName Microsoft.ApplicationInsights.DataContracts.MetricTelemetry
+          $metric.Name    = $DisplayName
+          $metric.Timestamp  = $Started
+          $metric.Value   = [double]$Duration.TotalSeconds
+          $metric.Sum   = [double]$Duration.TotalSeconds
+          $Properties.Keys | ForEach-Object { $metric.Properties[$_] = $Properties[$_] }
+          $Metrics.Keys    | ForEach-Object { $metric.Metrics[$_]    = $Metrics[$_] }
+          $telemetryClient.TrackMetric($metric)
+
+          #track yaml filepath
+          $pageView = New-Object -TypeName Microsoft.ApplicationInsights.DataContracts.PageViewTelemetry
+          $pageView.Name       = $urlSegments[-1]
+          $pageView.Url       = $FullFilePath
+          $pageView.Timestamp  = $Started
+          $pageView.Duration   = $Duration
+          $Properties.Keys | ForEach-Object { $pageView.Properties[$_] = $Properties[$_] }
+          $Metrics.Keys    | ForEach-Object { $pageView.Metrics[$_]    = $Metrics[$_] }
+          $telemetryClient.TrackPageView($pageView)
+
+          if($DebugMode) {
+              $trace = New-Object -TypeName Microsoft.ApplicationInsights.DataContracts.TraceTelemetry 
+              $trace.Message          = $DisplayName
+              $trace.SeverityLevel    = $TraceType 
+              $trace.Timestamp        = $Started
+              $Properties.Keys | ForEach-Object { $trace.Properties[$_] = $Properties[$_] }
+
+              #Action Type Options: Critical, Error, Information, Verbose, Warning 
+              $telemetryClient.TrackTrace($trace)
+          }
+
+
+          if($TraceType -eq 'Error') {
+              $telemetryClient.TrackException([System.Exception]::new($DisplayName))
+          }
+
+          $dependency = New-Object -TypeName Microsoft.ApplicationInsights.DataContracts.DependencyTelemetry 
+          $dependency.Type            = "Template"
+          $dependency.Duration        = $Duration
+          $dependency.Name            = $DisplayName
+          $dependency.Timestamp       = $Started
+          $dependency.Target          = $urlSegments[-1]  
+          $Properties.Keys | ForEach-Object { $dependency.Properties[$_] = $Properties[$_] }
+          $Metrics.Keys    | ForEach-Object { $dependency.Metrics[$_]    = $Metrics[$_] }
+          $telemetryClient.TrackDependency($dependency) 
+          $telemetryClient.Flush()
+        }
+
+        Log-Message -InstrumentationKey ${{ parameters.instrumentationKey }} -DisplayName "${{ parameters.objectTask.displayName }}" -Properties $optionsHashtable -FullFilePath "${{ parameters.yamlFullFilePath }}" -Started $(MonitoringStart) -Duration $duration -TraceType Information -DebugMode $true -Success $$(RunTask)
+        write-host "##vso[task.setvariable variable=RunTask;]true"
+      showWarnings: true
+      ignoreLASTEXITCODE: true
+      pwsh: true
+
+  - task: PowerShell@2
+    displayName: Task - AI Log Steps(Failed)
+    condition: |
+      and(
+        failed(),
+        eq( variables.RunTask , true)
+      )
+    inputs:
+      targetType: 'inline'
+      script: |
+        $endtime = "$(MonitoringStart)"
+        $time2 = Get-Date -Format "o"
+        $duration = (Get-Date $time2).Subtract((Get-Date $endtime))
+        $optionsHashtable = @{
+          "Organization" = "$(System.CollectionUri)"
+          "ProjectName" = "${{ parameters.projectName }}"
+          "PipelineName" = "$(Build.DefinitionName)"
+          "JobName" = "$(Agent.JobName)"
+          "Requested" = "$(Build.RequestedForId)"
+          "RepositoryName" = "$(Build.Repository.Name)"
+          "BranchName" = "$(Build.SourceBranch)"
+          "CommitHash" = "$(Build.SourceVersion)"
+          "Reason" = "$(Build.Reason)"
+          "AgentId" = "$(Agent.Id)"
+          "AgentMachineName" = "$(Agent.MachineName)"
+          "OS" = "$(Agent.OS)"
+          "OSArchitecture" = "$(Agent.OSArchitecture)"
+          "SystemHostType" = "$(System.HostType)"
+        }
+
+        function Log-Message {
+          Param(
+              [String]$InstrumentationKey,
+              [String]$DisplayName,
+              [String]$FullFilePath,
+              [System.DateTimeOffset]$Started,
+              [System.TimeSpan]$Duration,   
+              [bool]$Success         = $True, 
+              [bool]$DebugMode         = $False, 
+              [String]$TraceType      = "Information",
+              [HashTable]$Properties = @{},
+              [HashTable]$Metrics    = @{})
+          #Declaration of file    
+          $urlSegments = $FullFilePath -split '/'
+
+          # setup telemetry client ("*ApplicationInsights.dll" DLL must be present)
+          $telemetryClient  = New-Object -TypeName Microsoft.ApplicationInsights.TelemetryClient
+          $telemetryClient.InstrumentationKey     = $InstrumentationKey
+
+          # initialize context information
+          $OperationId = "$($env:BUILD_BUILDID)" #(New-Guid).ToString("N")
+          $TelemetryClient.Context.Session.Id     = "$($env:BUILD_BUILDID)"
+          $TelemetryClient.Context.User.Id        = "$($env:BUILD_REQUESTEDFORID)"  #"$($env:AGENT_MACHINENAME)-xx-$($env:BUILD_BUILDID)"
+          $TelemetryClient.Context.Device.Id       = "$($env:AGENT_MACHINENAME)"   #"$($env:AGENT_MACHINENAME)-xx-$($env:BUILD_BUILDID)"
+          $telemetryClient.Context.Operation.Id   = $OperationId
+          $telemetryClient.Context.Operation.ParentId = "$($env:BUILD_BUILDID)"
+          $telemetryClient.Context.Operation.SyntheticSource  = "$($env:SYSTEM_COLLECTIONURI)"
+          $telemetryClient.Context.Operation.Name = $DisplayName
+          $telemetryClient.Context.Component.Version = "$($env:BUILD_BUILDNUMBER)"
+          $telemetryClient.Context.Device.OperatingSystem = "$($env:AGENT_OS)"
+          $telemetryClient.Context.Device.Type = "$($env:AGENT_NAME)" 
+          $telemetryClient.Context.Cloud.RoleInstance = "$($env:SYSTEM_DEFINITIONID)" 
+          $telemetryClient.Context.Cloud.RoleName = "$($env:BUILD_REPOSITORY_NAME)" 
+
+          $telemetryClient.TrackEvent($DisplayName)
+
+          # setup request telemetry information
+          $request = New-Object -TypeName Microsoft.ApplicationInsights.DataContracts.RequestTelemetry
+          $request.Name       = $DisplayName
+          $request.Timestamp  = $Started
+          $request.Duration   = $Duration
+          $request.Timestamp  = $Started
+          $request.Url    = $FullFilePath
+          $request.Success    = $Success
+          $Properties.Keys | ForEach-Object { $request.Properties[$_] = $Properties[$_] }
+          $Metrics.Keys    | ForEach-Object { $request.Metrics[$_]    = $Metrics[$_] }
+          $telemetryClient.Track($request)
+
+          $metric = New-Object -TypeName Microsoft.ApplicationInsights.DataContracts.MetricTelemetry
+          $metric.Name    = $DisplayName
+          $metric.Timestamp  = $Started
+          $metric.Value   = [double]$Duration.TotalSeconds
+          $metric.Sum   = [double]$Duration.TotalSeconds
+          $Properties.Keys | ForEach-Object { $metric.Properties[$_] = $Properties[$_] }
+          $Metrics.Keys    | ForEach-Object { $metric.Metrics[$_]    = $Metrics[$_] }
+          $telemetryClient.TrackMetric($metric)
+
+          #track yaml filepath
+          $pageView = New-Object -TypeName Microsoft.ApplicationInsights.DataContracts.PageViewTelemetry
+          $pageView.Name       = $urlSegments[-1]
+          $pageView.Url       = $FullFilePath
+          $pageView.Timestamp  = $Started
+          $pageView.Duration   = $Duration
+          $Properties.Keys | ForEach-Object { $pageView.Properties[$_] = $Properties[$_] }
+          $Metrics.Keys    | ForEach-Object { $pageView.Metrics[$_]    = $Metrics[$_] }
+          $telemetryClient.TrackPageView($pageView)
+
+          if($DebugMode) {
+              $trace = New-Object -TypeName Microsoft.ApplicationInsights.DataContracts.TraceTelemetry 
+              $trace.Message          = $DisplayName
+              $trace.SeverityLevel    = $TraceType 
+              $trace.Timestamp        = $Started
+              $Properties.Keys | ForEach-Object { $trace.Properties[$_] = $Properties[$_] }
+
+              #Action Type Options: Critical, Error, Information, Verbose, Warning 
+              $telemetryClient.TrackTrace($trace)
+          }
+
+
+          if($TraceType -eq 'Error') {
+              $telemetryClient.TrackException([System.Exception]::new($DisplayName))
+          }
+
+          $dependency = New-Object -TypeName Microsoft.ApplicationInsights.DataContracts.DependencyTelemetry 
+          $dependency.Type            = "Template"
+          $dependency.Duration        = $Duration
+          $dependency.Name            = $DisplayName
+          $dependency.Timestamp       = $Started
+          $dependency.Target          = $urlSegments[-1]  
+          $Properties.Keys | ForEach-Object { $dependency.Properties[$_] = $Properties[$_] }
+          $Metrics.Keys    | ForEach-Object { $dependency.Metrics[$_]    = $Metrics[$_] }
+          $telemetryClient.TrackDependency($dependency) 
+          $telemetryClient.Flush()
+        }
+
+        Log-Message -InstrumentationKey ${{ parameters.instrumentationKey }} -DisplayName "${{ parameters.objectTask.displayName }}" -Properties $optionsHashtable -FullFilePath "${{ parameters.yamlFullFilePath }}" -Started $(MonitoringStart) -Duration $duration -TraceType Error -DebugMode $true -Success $$(RunTask)
+        write-host "##vso[task.setvariable variable=RunTask;]false"
+      showWarnings: true
+      ignoreLASTEXITCODE: true
+      pwsh: true

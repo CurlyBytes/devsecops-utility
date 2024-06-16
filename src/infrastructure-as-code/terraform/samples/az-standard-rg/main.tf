@@ -7,7 +7,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "3.108.0"
+      version = "3.104.0"
     }
   }
 }
@@ -18,7 +18,8 @@ provider "azurerm" {
 }
 
 module "aztf_rnd_rg" {
-  source                   = "../../../terraform/components/azure-resource-group"
+  # source                   = "../../components/azure-resource-group" #direct directory
+  source                   = "../../../terraform_files/components/azure-resource-group" #terrafomr image
   PROJECT_NAME             = "devsecops-utility"
   PROJECT_ENVIRONMENT_NAME = "Sandbox"
 
