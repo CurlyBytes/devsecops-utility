@@ -44,6 +44,21 @@ parameters:
     displayName: "Environment variable holder"
     type: object
     default: []
+  - name: errorActionPreference
+    displayName: "Powershell Action whenever error occurs"
+    type: string
+    default: "default"
+    values:
+      - default
+      - silentlyContinue
+  - name: failOnStderr
+    displayName: "Is halt and error upon a failure on the script occur"
+    type: boolean
+    default: true
+  - name: ignoreLASTEXITCODE
+    displayName: "Still continue the upon script command on exit"
+    type: boolean
+    default: false
   - name: target
     displayName: "Powershell script to be run"
     type: string
